@@ -1,21 +1,128 @@
 import React, { useState } from "react";
 import logo from "./assets/logo.png";
 import bg from "./assets/bg.jpg";
+import sticker from "./assets/girl-sticker.png";
+import yogaGirl from "./assets/yoga-girl.png";
 
+// ── Pre-generated petal data ──────────────────────────────────────────────────
+const PETAL_DATA = Array.from({ length: 12 }, (_, i) => ({
+  id: i,
+  size: 14 + (i * 3.7) % 18,
+  left: (i * 8.3) % 100,
+  delay: (i * 0.85) % 10,
+  duration: 7 + (i * 1.1) % 8,
+  emoji: ["🌸", "🌺", "🌷", "💮"][i % 4],
+}));
+
+// ── FLOATING PETALS ───────────────────────────────────────────────────────────
+function FloatingPetals() {
+  return (
+    <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 1 }}>
+      <style>{`
+        @keyframes fall {
+          0%   { transform: translateY(-60px) rotate(0deg); opacity: 0; }
+          10%  { opacity: 1; }
+          90%  { opacity: 0.7; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes sway {
+          0%   { margin-left: 0px; }
+          25%  { margin-left: 40px; }
+          75%  { margin-left: -40px; }
+          100% { margin-left: 0px; }
+        }
+        @keyframes fadeInUp {
+          0%   { opacity: 0; transform: translateY(30px); }
+          100% { opacity: 1; transform: translateY(0px); }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50%       { transform: scale(1.06); }
+        }
+        .hero-animate { animation: fadeInUp 0.9s ease forwards; }
+        .pulse-btn    { animation: pulse 2.5s ease-in-out infinite; }
+      `}</style>
+      {PETAL_DATA.map((p) => (
+        <div key={p.id} style={{
+          position: "absolute",
+          left: `${p.left}%`,
+          top: "-40px",
+          fontSize: `${p.size}px`,
+          opacity: 0,
+          animation: `fall ${p.duration}s ${p.delay}s linear infinite, sway ${p.duration * 0.6}s ${p.delay}s ease-in-out infinite`,
+          pointerEvents: "none",
+        }}>
+          {p.emoji}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── FLIP CARD ─────────────────────────────────────────────────────────────────
+function FlipCard({ icon, title, text, backText, topBadge }) {
+  const [flipped, setFlipped] = useState(false);
+  return (
+    <div
+      style={S.flipWrapper}
+      onMouseEnter={() => setFlipped(true)}
+      onMouseLeave={() => setFlipped(false)}
+    >
+      <div style={{ ...S.flipInner, transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}>
+        <div style={S.flipFront}>
+          {topBadge && <div style={S.stepNumBadge}>{topBadge}</div>}
+          <div style={S.cardIcon}>{icon}</div>
+          <div style={S.cardTitle}>{title}</div>
+          <div style={S.cardText}>{text}</div>
+        </div>
+        <div style={S.flipBack}>
+          {topBadge && <div style={{ ...S.stepNumBadge, color: "rgba(255,255,255,0.5)" }}>{topBadge}</div>}
+          <div style={S.cardIcon}>{icon}</div>
+          <div style={{ ...S.cardTitle, color: "white" }}>{title}</div>
+          <div style={{ ...S.cardText, color: "rgba(255,255,255,0.9)", marginTop: "10px" }}>{backText}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PAGES ─────────────────────────────────────────────────────────────────────
 function HomePage() {
   return (
     <section style={S.hero}>
-      <div style={S.badge}>✨ Your PCOD Lifestyle Companion</div>
-      <h1 style={S.h1}>
-        Your Safe Space for <span style={S.pink}>Mental Wellness</span>
-      </h1>
-      <p style={S.subtext}>
-        Track your emotions, understand your mood, and get personalized AI
-        guidance — all in one place.
-      </p>
-      <div style={S.heroBtns}>
-        <button style={S.primaryBtn}>🚀 Start Assessment</button>
-        <button style={S.secondaryBtn}>Learn More</button>
+      <div style={S.heroRow}>
+        <div style={S.heroLeft}>
+          <div className="hero-animate" style={S.mascotCard}>
+            <div style={S.stickerCircle}>
+              <img src={sticker} alt="HerSpace guide" style={S.stickerImg} />
+            </div>
+            <div style={S.mascotText}>
+              <div style={S.mascotTitle}>Welcome to HerSpace 💕</div>
+              <div style={S.mascotSub}>Your PCOD companion is here for you</div>
+            </div>
+          </div>
+          <h1 className="hero-animate" style={{ ...S.h1, animationDelay: "0.35s", opacity: 0 }}>
+            Your Safe Space for <span style={S.pink}>PCOD Lifestyle Balance</span>
+          </h1>
+          <p className="hero-animate" style={{ ...S.subtext, animationDelay: "0.5s", opacity: 0 }}>
+            Track your lifestyle habits, understand hormonal balance,
+            and receive personalized guidance to manage PCOD naturally.
+          </p>
+          <div className="hero-animate" style={{ animationDelay: "0.65s" }}>
+            <div style={S.heroBtns}>
+              <button className="pulse-btn" style={S.primaryBtn}>🚀 Start Assessment</button>
+              <button style={S.secondaryBtn}>Learn More</button>
+            </div>
+          </div>
+        </div>
+
+        <div style={S.heroRight}>
+          <div className="hero-animate" style={{ ...S.heroIllustrationCard, opacity: 0, animationDelay: "0.4s" }}>
+            <div style={S.heroIllustrationCircle}>
+              <img src={yogaGirl} alt="Wellness illustration" style={S.heroIllustrationImg} />
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -23,25 +130,19 @@ function HomePage() {
 
 function FeaturesPage() {
   const features = [
-    { icon: "😊", title: "Mood Tracking", text: "Log your daily emotions and spot patterns over time." },
-    { icon: "🤖", title: "AI Guidance", text: "Get personalized lifestyle advice powered by AI." },
-    { icon: "📊", title: "Progress Insights", text: "Beautiful visual charts to track your wellness journey." },
-    { icon: "🔒", title: "Safe & Private", text: "Your data is encrypted and never shared." },
-    { icon: "🌙", title: "Sleep Analysis", text: "Understand how sleep affects your mental health." },
-    { icon: "🧘", title: "Mindfulness", text: "Guided breathing and meditation exercises." },
+    { icon: "😊", title: "Mood Tracking",    text: "Log your daily emotions and spot patterns over time.",        backText: "Our smart mood tracker helps you identify emotional triggers and patterns with beautiful daily & weekly charts." },
+    { icon: "🤖", title: "AI Guidance",       text: "Get personalized lifestyle advice powered by AI.",            backText: "Our AI analyzes your unique PCOD profile and gives tailored advice on diet, sleep, and stress management." },
+    { icon: "📊", title: "Progress Insights", text: "Beautiful visual charts to track your wellness journey.",     backText: "Radar charts, trend graphs, and weekly summaries help you see your progress at a glance." },
+    { icon: "🔒", title: "Safe & Private",    text: "Your data is encrypted and never shared.",                   backText: "End-to-end encryption ensures your health data stays 100% private — only you can see it." },
+    { icon: "🌙", title: "Sleep Analysis",    text: "Understand how sleep affects your mental health.",           backText: "Track sleep quality and duration, and discover how it directly impacts your mood and PCOD symptoms." },
+    { icon: "🧘", title: "Mindfulness",       text: "Guided breathing and meditation exercises.",                 backText: "Daily 5-minute mindfulness sessions proven to reduce cortisol and improve hormonal balance." },
   ];
   return (
     <section style={S.page}>
       <h2 style={S.pageTitle}>What <span style={S.pink}>HerSpace</span> Offers</h2>
       <p style={S.pageSubtext}>Everything you need for your wellness journey.</p>
       <div style={S.grid}>
-        {features.map((f) => (
-          <div key={f.title} style={S.card}>
-            <div style={S.cardIcon}>{f.icon}</div>
-            <div style={S.cardTitle}>{f.title}</div>
-            <div style={S.cardText}>{f.text}</div>
-          </div>
-        ))}
+        {features.map((f) => <FlipCard key={f.title} {...f} />)}
       </div>
     </section>
   );
@@ -49,23 +150,21 @@ function FeaturesPage() {
 
 function HowItWorksPage() {
   const steps = [
-    { num: "01", icon: "📝", title: "Take Assessment", text: "Answer simple questions about your lifestyle, sleep, stress, and emotions." },
-    { num: "02", icon: "🧠", title: "Get Your Analysis", text: "See your wellness radar chart and personalized score breakdown." },
-    { num: "03", icon: "💡", title: "Receive Guidance", text: "Get AI-powered suggestions tailored to your unique profile." },
-    { num: "04", icon: "📈", title: "Track Progress", text: "Log daily moods and watch your wellness improve over time." },
+    { num: "01", icon: "📝", title: "Take Assessment",  text: "Answer simple questions about your lifestyle.",    backText: "Takes only 5 minutes! Covers sleep, stress, diet, emotions and daily habits to build your profile." },
+    { num: "02", icon: "🧠", title: "Get Your Analysis", text: "See your wellness radar chart and score.",         backText: "Your personalized radar chart shows scores across 6 wellness dimensions with detailed breakdown." },
+    { num: "03", icon: "💡", title: "Receive Guidance",  text: "Get AI-powered suggestions for your profile.",    backText: "Customized daily tips on nutrition, sleep, mindfulness and exercise based on your unique PCOD profile." },
+    { num: "04", icon: "📈", title: "Track Progress",    text: "Log daily moods and watch yourself improve.",     backText: "Weekly progress reports show how your lifestyle changes are improving your hormonal health over time." },
   ];
   return (
     <section style={S.page}>
       <h2 style={S.pageTitle}>How It <span style={S.pink}>Works</span></h2>
-      <p style={S.pageSubtext}>Simple steps to start your wellness journey today.</p>
+      <p style={S.pageSubtext}>Hover each step to learn more ✨</p>
       <div style={S.stepsGrid}>
-        {steps.map((s) => (
-          <div key={s.num} style={S.stepCard}>
-            <div style={S.stepNum}>{s.num}</div>
-            <div style={S.cardIcon}>{s.icon}</div>
-            <div style={S.cardTitle}>{s.title}</div>
-            <div style={S.cardText}>{s.text}</div>
-          </div>
+        {steps.map((s, i) => (
+          <React.Fragment key={s.num}>
+            <FlipCard icon={s.icon} title={s.title} text={s.text} backText={s.backText} topBadge={s.num} />
+            {i < steps.length - 1 && <div style={S.stepArrow}>→</div>}
+          </React.Fragment>
         ))}
       </div>
     </section>
@@ -74,12 +173,12 @@ function HowItWorksPage() {
 
 function AboutPage() {
   return (
-    <section style={{ ...S.page, maxWidth: "660px", margin: "0 auto" }}>
+    <section style={{ ...S.page, maxWidth: "680px", margin: "0 auto" }}>
       <h2 style={S.pageTitle}>About <span style={S.pink}>HerSpace</span></h2>
       <p style={{ ...S.pageSubtext, marginBottom: "24px" }}>
         A safe, judgment-free wellness platform built for women with PCOD.
       </p>
-      <div style={S.aboutCard}>
+      <div style={S.glassCard}>
         <p style={S.aboutText}>
           We believe every woman deserves access to tools that help her understand her emotions,
           manage stress, and build healthier habits — without stigma or complexity.
@@ -89,9 +188,16 @@ function AboutPage() {
           about your mental and emotional health, so you can take control of your wellbeing.
         </p>
         <div style={S.stats}>
-          <div style={S.stat}><div style={S.statNum}>10K+</div><div style={S.statLabel}>Women Helped</div></div>
-          <div style={S.stat}><div style={S.statNum}>95%</div><div style={S.statLabel}>Feel Better</div></div>
-          <div style={S.stat}><div style={S.statNum}>24/7</div><div style={S.statLabel}>AI Support</div></div>
+          {[
+            { num: "10K+", label: "Women Helped" },
+            { num: "95%",  label: "Feel Better"  },
+            { num: "24/7", label: "AI Support"   },
+          ].map((s) => (
+            <div key={s.label} style={S.statGlass}>
+              <div style={S.statGlassNum}>{s.num}</div>
+              <div style={S.statGlassLabel}>{s.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -103,10 +209,10 @@ function ContactPage() {
     <section style={{ ...S.page, maxWidth: "500px", margin: "0 auto" }}>
       <h2 style={S.pageTitle}>Get In <span style={S.pink}>Touch</span></h2>
       <p style={S.pageSubtext}>We'd love to hear from you.</p>
-      <div style={S.contactCard}>
+      <div style={S.glassCard}>
         {[
-          { label: "Your Name", placeholder: "e.g. Priya Sharma", type: "text" },
-          { label: "Email Address", placeholder: "you@example.com", type: "email" },
+          { label: "Your Name",     placeholder: "e.g. Priya Sharma", type: "text"  },
+          { label: "Email Address", placeholder: "you@example.com",   type: "email" },
         ].map((f) => (
           <div key={f.label} style={{ marginBottom: "16px" }}>
             <label style={S.label}>{f.label}</label>
@@ -126,26 +232,33 @@ function ContactPage() {
   );
 }
 
+// ── TABS ──────────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: "home",       label: "Home",         component: <HomePage /> },
-  { id: "features",   label: "Features",     component: <FeaturesPage /> },
+  { id: "home",       label: "Home",         component: <HomePage />       },
+  { id: "features",   label: "Features",     component: <FeaturesPage />   },
   { id: "howitworks", label: "How It Works", component: <HowItWorksPage /> },
-  { id: "about",      label: "About",        component: <AboutPage /> },
-  { id: "contact",    label: "Contact",      component: <ContactPage /> },
+  { id: "about",      label: "About",        component: <AboutPage />      },
+  { id: "contact",    label: "Contact",      component: <ContactPage />    },
 ];
 
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [active, setActive] = useState("home");
   const current = TABS.find((t) => t.id === active);
 
   return (
-    <div style={S.root}>
+    <>
+      <style>{`
+        .nav-tab:hover {
+          color: #ff4f8b !important;
+        }
+      `}</style>
+      <div style={S.root}>
+        <div style={S.overlay}></div>
 
-      {/* Blurred background overlay */}
-      <div style={S.overlay}></div>
+        {active === "home" && <FloatingPetals />}
 
-      {/* NAVBAR */}
-      <header style={S.header}>
+        <header style={S.header}>
         <div style={S.headerInner}>
           <div style={S.logoBox}>
             <img src={logo} alt="HerSpace" style={S.logoImg} />
@@ -154,6 +267,7 @@ export default function App() {
             {TABS.map((tab) => (
               <button
                 key={tab.id}
+                className="nav-tab"
                 onClick={() => setActive(tab.id)}
                 style={{ ...S.tab, ...(active === tab.id ? S.tabActive : {}) }}
               >
@@ -167,22 +281,141 @@ export default function App() {
             <button style={S.signupBtn}>Sign Up</button>
           </div>
         </div>
-      </header>
+        </header>
 
-      {/* PAGE CONTENT */}
-      <main style={S.main}>{current.component}</main>
+        <main style={S.main}>{current.component}</main>
 
-      {/* FOOTER */}
-      <footer style={S.footer}>
-        © 2026 HerSpace · "Your mental health is a priority." 🌸
-      </footer>
-
-    </div>
+        <footer style={S.footer}>
+          © 2026 HerSpace · "Your mental health is a priority." 🌸
+        </footer>
+      </div>
+    </>
   );
 }
 
+// ── POPUP STYLES ──────────────────────────────────────────────────────────────
+const P = {
+  backdrop: {
+    position: "fixed", inset: 0, zIndex: 999,
+    background: "rgba(0,0,0,0.5)",
+    backdropFilter: "blur(6px)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+  },
+  box: {
+    background: "linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,220,230,0.95))",
+    backdropFilter: "blur(20px)",
+    borderRadius: "32px",
+    padding: "32px 36px",
+    maxWidth: "380px",
+    width: "90%",
+    textAlign: "center",
+    boxShadow: "0 25px 60px rgba(205,44,88,0.3), 0 0 0 1px rgba(255,255,255,0.8)",
+    position: "relative",
+  },
+  petalRow: { display: "flex", justifyContent: "center", gap: "10px", marginBottom: "16px" },
+  girlWrapper: { marginBottom: "16px" },
+  girlCircle: {
+    width: "110px", height: "110px", borderRadius: "50%",
+    background: "linear-gradient(135deg, #fce4ec, #f8bbd0)",
+    border: "3px solid rgba(205,44,88,0.3)",
+    margin: "0 auto",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    boxShadow: "0 8px 24px rgba(205,44,88,0.2)",
+    position: "relative", overflow: "visible",
+  },
+  girlFace: { position: "relative", width: "80px", textAlign: "center" },
+  hair: {
+    width: "64px", height: "36px",
+    background: "linear-gradient(135deg, #4a2c2a, #6d3b3b)",
+    borderRadius: "32px 32px 0 0",
+    margin: "0 auto", position: "relative", zIndex: 2,
+  },
+  hairLeft: {
+    position: "absolute", left: "2px", top: "20px",
+    width: "14px", height: "40px",
+    background: "linear-gradient(135deg, #4a2c2a, #6d3b3b)",
+    borderRadius: "0 0 10px 10px",
+  },
+  hairRight: {
+    position: "absolute", right: "2px", top: "20px",
+    width: "14px", height: "40px",
+    background: "linear-gradient(135deg, #4a2c2a, #6d3b3b)",
+    borderRadius: "0 0 10px 10px",
+  },
+  face: {
+    width: "56px", height: "56px",
+    background: "linear-gradient(135deg, #fddde6, #fce4ec)",
+    borderRadius: "50%",
+    margin: "-8px auto 0",
+    position: "relative", zIndex: 3,
+    display: "flex", flexDirection: "column",
+    alignItems: "center", justifyContent: "center",
+    boxShadow: "0 2px 8px rgba(205,44,88,0.15)",
+  },
+  eyeRow: { display: "flex", gap: "10px", marginBottom: "4px" },
+  eye: {
+    width: "12px", height: "14px",
+    background: "#2c1810", borderRadius: "50%",
+    position: "relative", overflow: "hidden",
+  },
+  eyeInner: {
+    width: "6px", height: "8px", background: "#1a0f0a",
+    borderRadius: "50%", position: "absolute", bottom: "1px", left: "3px",
+  },
+  eyeShine: {
+    width: "4px", height: "4px", background: "white",
+    borderRadius: "50%", position: "absolute", top: "1px", right: "1px",
+  },
+  blushRow: { display: "flex", gap: "14px", marginBottom: "3px" },
+  blush: { width: "10px", height: "6px", background: "rgba(255,100,130,0.4)", borderRadius: "50%" },
+  mouth: {
+    width: "16px", height: "8px",
+    border: "2px solid #e06090", borderTop: "none",
+    borderRadius: "0 0 10px 10px",
+  },
+  body: {
+    width: "50px", height: "30px",
+    background: "linear-gradient(135deg, #E06C9F, #CD2C58)",
+    borderRadius: "12px 12px 0 0",
+    margin: "2px auto 0",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    position: "relative", zIndex: 2,
+  },
+  bodyText: { fontSize: "14px" },
+  wavingHand: {
+    position: "absolute", right: "-20px", top: "20px",
+    fontSize: "22px",
+    animation: "floatGirl 1.5s ease-in-out infinite",
+  },
+  msgBox: {
+    background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)",
+    borderRadius: "16px", padding: "12px 20px", marginBottom: "12px",
+    minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center",
+    border: "1px solid rgba(205,44,88,0.15)",
+  },
+  msgText: { fontSize: "16px", fontWeight: "700", color: "#CD2C58", margin: 0 },
+  desc: { fontSize: "13px", color: "#666", lineHeight: 1.6, marginBottom: "20px" },
+  countdownWrap: { marginBottom: "14px" },
+  countdownBar: {
+    width: "100%", height: "6px",
+    background: "rgba(205,44,88,0.15)",
+    borderRadius: "10px", overflow: "hidden", marginBottom: "8px",
+  },
+  countdownFill: {
+    height: "100%",
+    background: "linear-gradient(90deg, #E06C9F, #CD2C58)",
+    borderRadius: "10px",
+  },
+  countdownText: { fontSize: "12px", color: "#999", margin: 0 },
+  skipBtn: {
+    background: "none", border: "none",
+    color: "#CD2C58", fontSize: "13px",
+    fontWeight: "600", cursor: "pointer", textDecoration: "underline",
+  },
+};
+
+// ── MAIN STYLES ───────────────────────────────────────────────────────────────
 const S = {
-  // Root with background image
   root: {
     fontFamily: "'Segoe UI', sans-serif",
     minHeight: "100vh",
@@ -190,273 +423,222 @@ const S = {
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundAttachment: "fixed",
-    display: "flex",
-    flexDirection: "column",
+    display: "flex", flexDirection: "column",
     position: "relative",
   },
-
-  // Blur overlay on top of bg image
   overlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(255, 220, 220, 0.6)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
+    position: "fixed", inset: 0,
+    background: "rgba(255,220,220,0.55)",
+    backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
     zIndex: 0,
   },
-
-  // Header
   header: {
-    background: "rgba(255,255,255,0.92)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
+    background: "rgba(255,255,255,0.75)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
     borderBottom: "1px solid rgba(205,44,88,0.15)",
-    position: "sticky",
-    top: 0,
-    zIndex: 100,
+    position: "sticky", top: 0, zIndex: 100,
   },
   headerInner: {
-    display: "flex",
-    alignItems: "center",
-    padding: "0 32px",
-    gap: "8px",
-    height: "64px",
+    display: "flex", alignItems: "center",
+    padding: "0 32px", gap: "8px", height: "64px",
   },
-  logoBox: {
-    marginRight: "16px",
-    display: "flex",
-    alignItems: "center",
-  },
-  logoImg: {
-    height: "48px",
-    objectFit: "contain",
-  },
-
-  // Tabs
-  tabBar: {
-    display: "flex",
-    alignItems: "center",
-    flex: 1,
-    gap: "2px",
-    height: "100%",
-  },
+  logoBox: { marginRight: "16px", display: "flex", alignItems: "center" },
+  logoImg: { height: "48px", objectFit: "contain" },
+  tabBar: { display: "flex", alignItems: "center", flex: 1, gap: "2px", height: "100%" },
   tab: {
-    position: "relative",
-    background: "none",
-    border: "none",
-    padding: "0 16px",
-    height: "64px",
-    fontSize: "14px",
-    fontWeight: "500",
-    color: "#666",
-    cursor: "pointer",
-    transition: "color 0.2s",
-    whiteSpace: "nowrap",
+    position: "relative", background: "none", border: "none",
+    padding: "0 16px", height: "64px", fontSize: "14px",
+    fontWeight: "500", color: "#666", cursor: "pointer",
+    transition: "color 0.2s", whiteSpace: "nowrap",
   },
-  tabActive: {
-    color: "#CD2C58",
-    fontWeight: "700",
-  },
+  tabActive: { color: "#CD2C58", fontWeight: "700" },
   tabUnderline: {
-    position: "absolute",
-    bottom: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "70%",
-    height: "3px",
+    position: "absolute", bottom: 0, left: "50%",
+    transform: "translateX(-50%)", width: "70%", height: "3px",
     borderRadius: "3px 3px 0 0",
     background: "linear-gradient(90deg, #CD2C58, #E06C9F)",
   },
-
-  // Auth buttons
   authBtns: { display: "flex", gap: "10px", marginLeft: "auto" },
   loginBtn: {
-    padding: "8px 20px",
-    border: "2px solid #CD2C58",
-    borderRadius: "25px",
-    background: "transparent",
-    color: "#CD2C58",
-    fontWeight: "600",
-    cursor: "pointer",
-    fontSize: "13px",
+    padding: "8px 20px", border: "2px solid #CD2C58", borderRadius: "25px",
+    background: "transparent", color: "#CD2C58",
+    fontWeight: "600", cursor: "pointer", fontSize: "13px",
   },
   signupBtn: {
-    padding: "8px 20px",
-    border: "none",
-    borderRadius: "25px",
+    padding: "8px 20px", border: "none", borderRadius: "25px",
     background: "linear-gradient(135deg, #E06C9F, #CD2C58)",
-    color: "white",
-    fontWeight: "600",
-    cursor: "pointer",
-    fontSize: "13px",
+    color: "white", fontWeight: "600", cursor: "pointer", fontSize: "13px",
     boxShadow: "0 4px 14px rgba(205,44,88,0.35)",
   },
-
-  // Main & Footer
-  main: {
-    flex: 1,
-    padding: "40px 20px",
-    position: "relative",
-    zIndex: 1,
-  },
+  main: { flex: 1, padding: "40px 20px", position: "relative", zIndex: 2 },
   footer: {
-    textAlign: "center",
-    padding: "16px",
-    fontSize: "12px",
-    color: "#CD2C58",
-    borderTop: "1px solid rgba(205,44,88,0.15)",
-    background: "rgba(255,255,255,0.5)",
-    position: "relative",
-    zIndex: 1,
+    textAlign: "center", padding: "16px", fontSize: "12px",
+    color: "#CD2C58", borderTop: "1px solid rgba(205,44,88,0.15)",
+    background: "rgba(255,255,255,0.4)", backdropFilter: "blur(10px)",
+    position: "relative", zIndex: 2,
   },
-
-  // Hero
   hero: {
     display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    textAlign: "center",
-    paddingTop: "30px",
+    justifyContent: "center",
+    paddingTop: "40px",
+    paddingInline: "20px",
   },
+  heroRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "32px",
+    maxWidth: "1100px",
+    width: "100%",
+  },
+  heroLeft: {
+    flex: "1 1 340px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "18px",
+  },
+  heroRight: {
+    flex: "1 1 260px",
+    display: "flex",
+    justifyContent: "center",
+  },
+  mascotCard: {
+    display: "flex", alignItems: "center", gap: "12px",
+    background: "rgba(255,255,255,0.5)",
+    backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+    border: "1px solid rgba(255,255,255,0.8)",
+    borderRadius: "20px", padding: "14px 24px",
+    boxShadow: "0 8px 32px rgba(205,44,88,0.15)",
+  },
+  stickerCircle: {
+    width: "52px",
+    height: "52px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #fce4ec, #f8bbd0)",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stickerImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
+  mascotText: { textAlign: "left" },
+  mascotTitle: { fontWeight: "800", fontSize: "15px", color: "#CD2C58" },
+  mascotSub: { fontSize: "12px", color: "#888", marginTop: "2px" },
   badge: {
-    background: "rgba(255,220,220,0.7)",
-    color: "#CD2C58",
-    padding: "6px 18px",
-    borderRadius: "20px",
-    fontSize: "13px",
-    fontWeight: "600",
-    marginBottom: "18px",
-    border: "1px solid rgba(205,44,88,0.25)",
+    background: "rgba(255,255,255,0.45)", backdropFilter: "blur(10px)",
+    color: "#CD2C58", padding: "6px 18px", borderRadius: "20px",
+    fontSize: "13px", fontWeight: "600", border: "1px solid rgba(205,44,88,0.25)",
   },
   h1: {
-    fontSize: "clamp(30px, 5vw, 56px)",
-    fontWeight: "900",
-    color: "#1a1a2e",
-    lineHeight: 1.15,
-    marginBottom: "16px",
-    maxWidth: "720px",
+    fontSize: "clamp(30px, 5vw, 56px)", fontWeight: "900",
+    color: "#1a1a2e", lineHeight: 1.15, maxWidth: "720px", margin: 0,
   },
   pink: { color: "#CD2C58" },
-  subtext: {
-    fontSize: "16px",
-    color: "#444",
-    maxWidth: "520px",
-    lineHeight: 1.7,
-    marginBottom: "30px",
-  },
+  subtext: { fontSize: "16px", color: "#444", maxWidth: "520px", lineHeight: 1.7, margin: 0 },
   heroBtns: { display: "flex", gap: "14px" },
   primaryBtn: {
-    padding: "13px 32px",
-    border: "none",
-    borderRadius: "30px",
-    background: "linear-gradient(135deg, #E06C9F, #CD2C58)",
-    color: "white",
-    fontWeight: "700",
-    fontSize: "15px",
-    cursor: "pointer",
+    padding: "13px 32px", border: "none", borderRadius: "30px",
+    background: "linear-gradient(135deg, #E06C9F, #CD2C58)", color: "white",
+    fontWeight: "700", fontSize: "15px", cursor: "pointer",
     boxShadow: "0 6px 20px rgba(205,44,88,0.4)",
   },
   secondaryBtn: {
-    padding: "13px 32px",
-    border: "2px solid #CD2C58",
+    padding: "13px 32px", border: "2px solid #CD2C58", borderRadius: "30px",
+    background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)",
+    color: "#CD2C58", fontWeight: "700", fontSize: "15px", cursor: "pointer",
+  },
+  heroIllustrationCard: {
+    background: "rgba(255,255,255,0.6)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
     borderRadius: "30px",
-    background: "white",
-    color: "#CD2C58",
-    fontWeight: "700",
-    fontSize: "15px",
-    cursor: "pointer",
+    padding: "24px",
+    boxShadow: "0 12px 40px rgba(205,44,88,0.2)",
   },
-
-  // Page layout
+  heroIllustrationCircle: {
+    width: "260px",
+    height: "260px",
+    borderRadius: "32px",
+    background: "radial-gradient(circle at top, #ffe6f0, #f8bbd0)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  heroIllustrationImg: {
+    width: "220px",
+    height: "220px",
+    objectFit: "cover",
+  },
+  pillsRow: { display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" },
+  pill: {
+    background: "rgba(255,255,255,0.45)", backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(205,44,88,0.2)",
+    borderRadius: "30px", padding: "8px 16px",
+    fontSize: "13px", color: "#CD2C58", fontWeight: "600",
+  },
   page: { textAlign: "center" },
-  pageTitle: {
-    fontSize: "clamp(24px, 3.5vw, 40px)",
-    fontWeight: "900",
-    color: "#1a1a2e",
-    marginBottom: "10px",
-  },
+  pageTitle: { fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: "900", color: "#1a1a2e", marginBottom: "10px" },
   pageSubtext: { fontSize: "15px", color: "#555", marginBottom: "36px" },
-
-  // Feature grid
-  grid: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "16px",
-    justifyContent: "center",
-    maxWidth: "860px",
-    margin: "0 auto",
+  grid: { display: "flex", flexWrap: "wrap", gap: "20px", justifyContent: "center", maxWidth: "860px", margin: "0 auto" },
+  flipWrapper: { width: "220px", height: "200px", perspective: "1000px", cursor: "pointer" },
+  flipInner: {
+    position: "relative", width: "100%", height: "100%",
+    transformStyle: "preserve-3d",
+    transition: "transform 0.6s cubic-bezier(0.4,0.2,0.2,1)",
   },
-  card: {
-    background: "#FFDCDC",
-    borderRadius: "18px",
-    padding: "24px 20px",
-    width: "220px",
-    textAlign: "center",
-    boxShadow: "0 4px 24px rgba(205,44,88,0.12)",
-    border: "1px solid rgba(255,255,255,0.8)",
+  flipFront: {
+    position: "absolute", inset: 0,
+    background: "rgba(255,220,220,0.55)",
+    backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
+    border: "1px solid rgba(255,255,255,0.75)", borderRadius: "18px",
+    padding: "20px 16px", textAlign: "center",
+    backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden",
+    boxShadow: "0 8px 32px rgba(205,44,88,0.12)",
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
   },
-  cardIcon: { fontSize: "30px", marginBottom: "10px" },
-  cardTitle: { fontWeight: "700", fontSize: "15px", color: "#1a1a2e", marginBottom: "6px" },
-  cardText: { fontSize: "13px", color: "#555", lineHeight: 1.5 },
-
-  // Steps
-  stepsGrid: {
-    display: "flex",
-    flexWrap: "nowrap",
-    gap: "20px",
-    justifyContent: "center",
-    maxWidth: "1100px",
-    margin: "0 auto",
+  flipBack: {
+    position: "absolute", inset: 0,
+    background: "linear-gradient(135deg, #E06C9F, #CD2C58)",
+    border: "1px solid rgba(255,255,255,0.3)", borderRadius: "18px",
+    padding: "20px 16px", textAlign: "center",
+    backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden",
+    transform: "rotateY(180deg)", boxShadow: "0 8px 32px rgba(205,44,88,0.3)",
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
   },
-  stepCard: {
-    background: "#FFDCDC",
-    borderRadius: "18px",
-    padding: "28px 20px",
-    width: "220px",
-    minWidth: "180px",
-    textAlign: "center",
-    boxShadow: "0 4px 24px rgba(205,44,88,0.12)",
-    border: "1px solid rgba(255,255,255,0.8)",
-  },
-  stepNum: {
-    fontSize: "36px",
-    fontWeight: "900",
-    color: "rgba(205,44,88,0.2)",
-    lineHeight: 1,
-    marginBottom: "8px",
-  },
-
-  // About
-  aboutCard: {
-    background: "#FFDCDC",
-    borderRadius: "20px",
-    padding: "32px",
-    textAlign: "left",
-    boxShadow: "0 4px 24px rgba(205,44,88,0.12)",
+  stepNumBadge: { fontSize: "28px", fontWeight: "900", color: "rgba(205,44,88,0.2)", lineHeight: 1, marginBottom: "6px" },
+  cardIcon: { fontSize: "28px", marginBottom: "8px" },
+  cardTitle: { fontWeight: "700", fontSize: "14px", color: "#1a1a2e", marginBottom: "5px" },
+  cardText: { fontSize: "12px", color: "#555", lineHeight: 1.5 },
+  stepsGrid: { display: "flex", flexWrap: "nowrap", gap: "6px", justifyContent: "center", maxWidth: "1100px", margin: "0 auto", alignItems: "center" },
+  stepArrow: { fontSize: "22px", color: "#CD2C58", fontWeight: "bold", flexShrink: 0 },
+  glassCard: {
+    background: "rgba(255,255,255,0.35)", backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.7)",
+    borderRadius: "24px", padding: "36px", textAlign: "left",
+    boxShadow: "0 8px 32px rgba(205,44,88,0.1)",
   },
   aboutText: { fontSize: "15px", color: "#333", lineHeight: 1.7 },
-  stats: { display: "flex", gap: "24px", marginTop: "28px", justifyContent: "center" },
-  stat: { textAlign: "center" },
-  statNum: { fontSize: "28px", fontWeight: "900", color: "#CD2C58" },
-  statLabel: { fontSize: "12px", color: "#888", marginTop: "4px" },
-
-  // Contact
-  contactCard: {
-    background: "#FFDCDC",
-    borderRadius: "20px",
-    padding: "32px",
-    textAlign: "left",
-    boxShadow: "0 4px 24px rgba(205,44,88,0.12)",
+  stats: { display: "flex", gap: "16px", marginTop: "28px", justifyContent: "center", flexWrap: "wrap" },
+  statGlass: {
+    background: "rgba(255,255,255,0.4)", backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.6)",
+    borderRadius: "16px", padding: "16px 28px", textAlign: "center",
+    boxShadow: "0 4px 20px rgba(205,44,88,0.1)",
   },
+  statGlassNum: { fontSize: "24px", fontWeight: "900", color: "#CD2C58" },
+  statGlassLabel: { fontSize: "12px", color: "#666", marginTop: "4px" },
   label: { display: "block", fontSize: "13px", fontWeight: "600", color: "#333", marginBottom: "6px" },
   input: {
-    width: "100%",
-    padding: "11px 14px",
-    border: "1.5px solid rgba(205,44,88,0.2)",
-    borderRadius: "10px",
-    fontSize: "14px",
-    outline: "none",
-    background: "rgba(255,255,255,0.8)",
+    width: "100%", padding: "11px 14px",
+    border: "1.5px solid rgba(205,44,88,0.2)", borderRadius: "10px",
+    fontSize: "14px", outline: "none",
+    background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)",
     boxSizing: "border-box",
   },
 };
