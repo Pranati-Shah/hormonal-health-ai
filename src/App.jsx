@@ -3,6 +3,7 @@ import logo from "./assets/logo.png";
 import bg from "./assets/bg.jpg";
 import sticker from "./assets/girl-sticker.png";
 import yogaGirl from "./assets/yoga-girl.png";
+import Assessment from "./pages/Assessment";
 
 // ── Pre-generated petal data ──────────────────────────────────────────────────
 const PETAL_DATA = Array.from({ length: 12 }, (_, i) => ({
@@ -87,7 +88,7 @@ function FlipCard({ icon, title, text, backText, topBadge }) {
 }
 
 // ── PAGES ─────────────────────────────────────────────────────────────────────
-function HomePage() {
+function HomePage({ onStartAssessment }) {
   return (
     <section style={S.hero}>
       <div style={S.heroRow}>
@@ -101,16 +102,21 @@ function HomePage() {
               <div style={S.mascotSub}>Your PCOD companion is here for you</div>
             </div>
           </div>
+
           <h1 className="hero-animate" style={{ ...S.h1, animationDelay: "0.35s", opacity: 0 }}>
             Your Safe Space for <span style={S.pink}>PCOD Lifestyle Balance</span>
           </h1>
+
           <p className="hero-animate" style={{ ...S.subtext, animationDelay: "0.5s", opacity: 0 }}>
             Track your lifestyle habits, understand hormonal balance,
             and receive personalized guidance to manage PCOD naturally.
           </p>
+
           <div className="hero-animate" style={{ animationDelay: "0.65s" }}>
             <div style={S.heroBtns}>
-              <button className="pulse-btn" style={S.primaryBtn}>🚀 Start Assessment</button>
+              <button className="pulse-btn" style={S.primaryBtn} onClick={onStartAssessment}>
+                🚀 Start Assessment
+              </button>
               <button style={S.secondaryBtn}>Learn More</button>
             </div>
           </div>
@@ -150,10 +156,10 @@ function FeaturesPage() {
 
 function HowItWorksPage() {
   const steps = [
-    { num: "01", icon: "📝", title: "Take Assessment",  text: "Answer simple questions about your lifestyle.",    backText: "Takes only 5 minutes! Covers sleep, stress, diet, emotions and daily habits to build your profile." },
-    { num: "02", icon: "🧠", title: "Get Your Analysis", text: "See your wellness radar chart and score.",         backText: "Your personalized radar chart shows scores across 6 wellness dimensions with detailed breakdown." },
-    { num: "03", icon: "💡", title: "Receive Guidance",  text: "Get AI-powered suggestions for your profile.",    backText: "Customized daily tips on nutrition, sleep, mindfulness and exercise based on your unique PCOD profile." },
-    { num: "04", icon: "📈", title: "Track Progress",    text: "Log daily moods and watch yourself improve.",     backText: "Weekly progress reports show how your lifestyle changes are improving your hormonal health over time." },
+    { num: "01", icon: "📝", title: "Take Assessment",   text: "Answer simple questions about your lifestyle.",  backText: "Takes only 5 minutes! Covers sleep, stress, diet, emotions and daily habits to build your profile." },
+    { num: "02", icon: "🧠", title: "Get Your Analysis", text: "See your wellness radar chart and score.",        backText: "Your personalized radar chart shows scores across 6 wellness dimensions with detailed breakdown." },
+    { num: "03", icon: "💡", title: "Receive Guidance",  text: "Get AI-powered suggestions for your profile.",   backText: "Customized daily tips on nutrition, sleep, mindfulness and exercise based on your unique PCOD profile." },
+    { num: "04", icon: "📈", title: "Track Progress",    text: "Log daily moods and watch yourself improve.",    backText: "Weekly progress reports show how your lifestyle changes are improving your hormonal health over time." },
   ];
   return (
     <section style={S.page}>
@@ -232,55 +238,50 @@ function ContactPage() {
   );
 }
 
-// ── TABS ──────────────────────────────────────────────────────────────────────
-const TABS = [
-  { id: "home",       label: "Home",         component: <HomePage />       },
-  { id: "features",   label: "Features",     component: <FeaturesPage />   },
-  { id: "howitworks", label: "How It Works", component: <HowItWorksPage /> },
-  { id: "about",      label: "About",        component: <AboutPage />      },
-  { id: "contact",    label: "Contact",      component: <ContactPage />    },
-];
-
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [active, setActive] = useState("home");
+
+  const TABS = [
+    { id: "home",       label: "Home",         component: <HomePage onStartAssessment={() => setActive("assessment")} /> },
+    { id: "features",   label: "Features",     component: <FeaturesPage />   },
+    { id: "howitworks", label: "How It Works", component: <HowItWorksPage /> },
+    { id: "about",      label: "About",        component: <AboutPage />      },
+    { id: "contact",    label: "Contact",      component: <ContactPage />    },
+    { id: "assessment", label: "Assessment",   component: <Assessment />     },
+  ];
+
   const current = TABS.find((t) => t.id === active);
 
   return (
     <>
       <style>{`
-        .nav-tab:hover {
-          color: #ff4f8b !important;
-        }
+        .nav-tab:hover { color: #ff4f8b !important; }
       `}</style>
       <div style={S.root}>
-        <div style={S.overlay}></div>
-
+        <div style={S.overlay} />
         {active === "home" && <FloatingPetals />}
 
         <header style={S.header}>
-        <div style={S.headerInner}>
-          <div style={S.logoBox}>
-            <img src={logo} alt="HerSpace" style={S.logoImg} />
+          <div style={S.headerInner}>
+            <div style={S.logoBox}>
+              <img src={logo} alt="HerSpace" style={S.logoImg} />
+            </div>
+            <nav style={S.tabBar}>
+              {TABS.map((tab) => (
+                <button key={tab.id} className="nav-tab"
+                  onClick={() => setActive(tab.id)}
+                  style={{ ...S.tab, ...(active === tab.id ? S.tabActive : {}) }}>
+                  {tab.label}
+                  {active === tab.id && <div style={S.tabUnderline} />}
+                </button>
+              ))}
+            </nav>
+            <div style={S.authBtns}>
+              <button style={S.loginBtn} onClick={() => setActive("assessment")}>Login</button>
+              <button style={S.signupBtn} onClick={() => setActive("assessment")}>Sign Up</button>
+            </div>
           </div>
-          <nav style={S.tabBar}>
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                className="nav-tab"
-                onClick={() => setActive(tab.id)}
-                style={{ ...S.tab, ...(active === tab.id ? S.tabActive : {}) }}
-              >
-                {tab.label}
-                {active === tab.id && <div style={S.tabUnderline} />}
-              </button>
-            ))}
-          </nav>
-          <div style={S.authBtns}>
-            <button style={S.loginBtn}>Login</button>
-            <button style={S.signupBtn}>Sign Up</button>
-          </div>
-        </div>
         </header>
 
         <main style={S.main}>{current.component}</main>
@@ -293,135 +294,13 @@ export default function App() {
   );
 }
 
-// ── POPUP STYLES ──────────────────────────────────────────────────────────────
-const P = {
-  backdrop: {
-    position: "fixed", inset: 0, zIndex: 999,
-    background: "rgba(0,0,0,0.5)",
-    backdropFilter: "blur(6px)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-  },
-  box: {
-    background: "linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,220,230,0.95))",
-    backdropFilter: "blur(20px)",
-    borderRadius: "32px",
-    padding: "32px 36px",
-    maxWidth: "380px",
-    width: "90%",
-    textAlign: "center",
-    boxShadow: "0 25px 60px rgba(205,44,88,0.3), 0 0 0 1px rgba(255,255,255,0.8)",
-    position: "relative",
-  },
-  petalRow: { display: "flex", justifyContent: "center", gap: "10px", marginBottom: "16px" },
-  girlWrapper: { marginBottom: "16px" },
-  girlCircle: {
-    width: "110px", height: "110px", borderRadius: "50%",
-    background: "linear-gradient(135deg, #fce4ec, #f8bbd0)",
-    border: "3px solid rgba(205,44,88,0.3)",
-    margin: "0 auto",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    boxShadow: "0 8px 24px rgba(205,44,88,0.2)",
-    position: "relative", overflow: "visible",
-  },
-  girlFace: { position: "relative", width: "80px", textAlign: "center" },
-  hair: {
-    width: "64px", height: "36px",
-    background: "linear-gradient(135deg, #4a2c2a, #6d3b3b)",
-    borderRadius: "32px 32px 0 0",
-    margin: "0 auto", position: "relative", zIndex: 2,
-  },
-  hairLeft: {
-    position: "absolute", left: "2px", top: "20px",
-    width: "14px", height: "40px",
-    background: "linear-gradient(135deg, #4a2c2a, #6d3b3b)",
-    borderRadius: "0 0 10px 10px",
-  },
-  hairRight: {
-    position: "absolute", right: "2px", top: "20px",
-    width: "14px", height: "40px",
-    background: "linear-gradient(135deg, #4a2c2a, #6d3b3b)",
-    borderRadius: "0 0 10px 10px",
-  },
-  face: {
-    width: "56px", height: "56px",
-    background: "linear-gradient(135deg, #fddde6, #fce4ec)",
-    borderRadius: "50%",
-    margin: "-8px auto 0",
-    position: "relative", zIndex: 3,
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    boxShadow: "0 2px 8px rgba(205,44,88,0.15)",
-  },
-  eyeRow: { display: "flex", gap: "10px", marginBottom: "4px" },
-  eye: {
-    width: "12px", height: "14px",
-    background: "#2c1810", borderRadius: "50%",
-    position: "relative", overflow: "hidden",
-  },
-  eyeInner: {
-    width: "6px", height: "8px", background: "#1a0f0a",
-    borderRadius: "50%", position: "absolute", bottom: "1px", left: "3px",
-  },
-  eyeShine: {
-    width: "4px", height: "4px", background: "white",
-    borderRadius: "50%", position: "absolute", top: "1px", right: "1px",
-  },
-  blushRow: { display: "flex", gap: "14px", marginBottom: "3px" },
-  blush: { width: "10px", height: "6px", background: "rgba(255,100,130,0.4)", borderRadius: "50%" },
-  mouth: {
-    width: "16px", height: "8px",
-    border: "2px solid #e06090", borderTop: "none",
-    borderRadius: "0 0 10px 10px",
-  },
-  body: {
-    width: "50px", height: "30px",
-    background: "linear-gradient(135deg, #E06C9F, #CD2C58)",
-    borderRadius: "12px 12px 0 0",
-    margin: "2px auto 0",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    position: "relative", zIndex: 2,
-  },
-  bodyText: { fontSize: "14px" },
-  wavingHand: {
-    position: "absolute", right: "-20px", top: "20px",
-    fontSize: "22px",
-    animation: "floatGirl 1.5s ease-in-out infinite",
-  },
-  msgBox: {
-    background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)",
-    borderRadius: "16px", padding: "12px 20px", marginBottom: "12px",
-    minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center",
-    border: "1px solid rgba(205,44,88,0.15)",
-  },
-  msgText: { fontSize: "16px", fontWeight: "700", color: "#CD2C58", margin: 0 },
-  desc: { fontSize: "13px", color: "#666", lineHeight: 1.6, marginBottom: "20px" },
-  countdownWrap: { marginBottom: "14px" },
-  countdownBar: {
-    width: "100%", height: "6px",
-    background: "rgba(205,44,88,0.15)",
-    borderRadius: "10px", overflow: "hidden", marginBottom: "8px",
-  },
-  countdownFill: {
-    height: "100%",
-    background: "linear-gradient(90deg, #E06C9F, #CD2C58)",
-    borderRadius: "10px",
-  },
-  countdownText: { fontSize: "12px", color: "#999", margin: 0 },
-  skipBtn: {
-    background: "none", border: "none",
-    color: "#CD2C58", fontSize: "13px",
-    fontWeight: "600", cursor: "pointer", textDecoration: "underline",
-  },
-};
-
-// ── MAIN STYLES ───────────────────────────────────────────────────────────────
+// ── STYLES ────────────────────────────────────────────────────────────────────
 const S = {
   root: {
     fontFamily: "'Segoe UI', sans-serif",
     minHeight: "100vh",
     backgroundImage: `url(${bg})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
+    backgroundSize: "cover", backgroundPosition: "center",
     backgroundAttachment: "fixed",
     display: "flex", flexDirection: "column",
     position: "relative",
@@ -477,32 +356,14 @@ const S = {
     background: "rgba(255,255,255,0.4)", backdropFilter: "blur(10px)",
     position: "relative", zIndex: 2,
   },
-  hero: {
-    display: "flex",
-    justifyContent: "center",
-    paddingTop: "40px",
-    paddingInline: "20px",
-  },
+  hero: { display: "flex", justifyContent: "center", paddingTop: "40px", paddingInline: "20px" },
   heroRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "32px",
-    maxWidth: "1100px",
-    width: "100%",
+    display: "flex", flexWrap: "wrap",
+    alignItems: "center", justifyContent: "space-between",
+    gap: "32px", maxWidth: "1100px", width: "100%",
   },
-  heroLeft: {
-    flex: "1 1 340px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "18px",
-  },
-  heroRight: {
-    flex: "1 1 260px",
-    display: "flex",
-    justifyContent: "center",
-  },
+  heroLeft: { flex: "1 1 340px", display: "flex", flexDirection: "column", gap: "18px" },
+  heroRight: { flex: "1 1 260px", display: "flex", justifyContent: "center" },
   mascotCard: {
     display: "flex", alignItems: "center", gap: "12px",
     background: "rgba(255,255,255,0.5)",
@@ -512,32 +373,16 @@ const S = {
     boxShadow: "0 8px 32px rgba(205,44,88,0.15)",
   },
   stickerCircle: {
-    width: "52px",
-    height: "52px",
-    borderRadius: "50%",
+    width: "52px", height: "52px", borderRadius: "50%",
     background: "linear-gradient(135deg, #fce4ec, #f8bbd0)",
-    overflow: "hidden",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    overflow: "hidden", display: "flex",
+    alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
-  stickerImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-  },
+  stickerImg: { width: "100%", height: "100%", objectFit: "cover" },
   mascotText: { textAlign: "left" },
   mascotTitle: { fontWeight: "800", fontSize: "15px", color: "#CD2C58" },
   mascotSub: { fontSize: "12px", color: "#888", marginTop: "2px" },
-  badge: {
-    background: "rgba(255,255,255,0.45)", backdropFilter: "blur(10px)",
-    color: "#CD2C58", padding: "6px 18px", borderRadius: "20px",
-    fontSize: "13px", fontWeight: "600", border: "1px solid rgba(205,44,88,0.25)",
-  },
-  h1: {
-    fontSize: "clamp(30px, 5vw, 56px)", fontWeight: "900",
-    color: "#1a1a2e", lineHeight: 1.15, maxWidth: "720px", margin: 0,
-  },
+  h1: { fontSize: "clamp(30px, 5vw, 56px)", fontWeight: "900", color: "#1a1a2e", lineHeight: 1.15, maxWidth: "720px", margin: 0 },
   pink: { color: "#CD2C58" },
   subtext: { fontSize: "16px", color: "#444", maxWidth: "520px", lineHeight: 1.7, margin: 0 },
   heroBtns: { display: "flex", gap: "14px" },
@@ -553,35 +398,16 @@ const S = {
     color: "#CD2C58", fontWeight: "700", fontSize: "15px", cursor: "pointer",
   },
   heroIllustrationCard: {
-    background: "rgba(255,255,255,0.6)",
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
-    borderRadius: "30px",
-    padding: "24px",
+    background: "rgba(255,255,255,0.6)", backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)", borderRadius: "30px", padding: "24px",
     boxShadow: "0 12px 40px rgba(205,44,88,0.2)",
   },
   heroIllustrationCircle: {
-    width: "260px",
-    height: "260px",
-    borderRadius: "32px",
+    width: "260px", height: "260px", borderRadius: "32px",
     background: "radial-gradient(circle at top, #ffe6f0, #f8bbd0)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
+    display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
   },
-  heroIllustrationImg: {
-    width: "220px",
-    height: "220px",
-    objectFit: "cover",
-  },
-  pillsRow: { display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" },
-  pill: {
-    background: "rgba(255,255,255,0.45)", backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(205,44,88,0.2)",
-    borderRadius: "30px", padding: "8px 16px",
-    fontSize: "13px", color: "#CD2C58", fontWeight: "600",
-  },
+  heroIllustrationImg: { width: "220px", height: "220px", objectFit: "cover" },
   page: { textAlign: "center" },
   pageTitle: { fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: "900", color: "#1a1a2e", marginBottom: "10px" },
   pageSubtext: { fontSize: "15px", color: "#555", marginBottom: "36px" },
