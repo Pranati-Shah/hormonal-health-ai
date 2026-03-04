@@ -242,16 +242,20 @@ function ContactPage() {
 export default function App() {
   const [active, setActive] = useState("home");
 
-  const TABS = [
+  const NAV_TABS = [
     { id: "home",       label: "Home",         component: <HomePage onStartAssessment={() => setActive("assessment")} /> },
     { id: "features",   label: "Features",     component: <FeaturesPage />   },
     { id: "howitworks", label: "How It Works", component: <HowItWorksPage /> },
     { id: "about",      label: "About",        component: <AboutPage />      },
     { id: "contact",    label: "Contact",      component: <ContactPage />    },
-    { id: "assessment", label: "Assessment",   component: <Assessment />     },
   ];
 
-  const current = TABS.find((t) => t.id === active);
+  const ALL_TABS = [
+    ...NAV_TABS,
+    { id: "assessment", label: "Assessment", component: <Assessment /> },
+  ];
+
+  const current = ALL_TABS.find((t) => t.id === active);
 
   return (
     <>
@@ -268,7 +272,7 @@ export default function App() {
               <img src={logo} alt="HerSpace" style={S.logoImg} />
             </div>
             <nav style={S.tabBar}>
-              {TABS.map((tab) => (
+              {NAV_TABS.map((tab) => (
                 <button key={tab.id} className="nav-tab"
                   onClick={() => setActive(tab.id)}
                   style={{ ...S.tab, ...(active === tab.id ? S.tabActive : {}) }}>
