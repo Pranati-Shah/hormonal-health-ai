@@ -6,6 +6,7 @@ import yogaGirl from "./assets/yoga-girl.png";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import LearnMore from "./pages/LearnMore";
 
 const PETAL_DATA = Array.from({ length: 12 }, (_, i) => ({
   id: i,
@@ -83,7 +84,7 @@ function FlipCard({ icon, title, text, backText, topBadge }) {
 }
 
 // ── PAGES ─────────────────────────────────────────────────────────────────────
-function HomePage() {
+function HomePage({ onLearnMore }) {
   return (
     <section style={S.hero}>
       <div style={S.heroRow}>
@@ -107,9 +108,9 @@ function HomePage() {
           <div className="hero-animate" style={{ animationDelay: "0.65s" }}>
             <div style={S.heroBtns}>
               <button className="pulse-btn" style={{ ...S.primaryBtn, cursor: "default", opacity: 0.85 }}>
-                🚀 Start Assessment
+                 Let's Begin ✨
               </button>
-              <button style={S.secondaryBtn}>Learn More</button>
+              <button style={S.secondaryBtn} onClick={onLearnMore}>Learn More</button>
             </div>
           </div>
         </div>
@@ -238,8 +239,13 @@ export default function App() {
   const [active, setActive]         = useState("home");
   const [authScreen, setAuthScreen] = useState("signup");
 
+  // ── LEARNMORE ROUTING ──
+  if (active === "learnmore") {
+    return <LearnMore onBack={() => setActive("home")} />;
+  }
+
   const NAV_TABS = [
-    { id: "home",       label: "Home",         component: <HomePage /> },
+    { id: "home",       label: "Home",         component: <HomePage onLearnMore={() => setActive("learnmore")} /> },
     { id: "features",   label: "Features",     component: <FeaturesPage />   },
     { id: "howitworks", label: "How It Works", component: <HowItWorksPage /> },
     { id: "about",      label: "About",        component: <AboutPage />      },
