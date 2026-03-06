@@ -42,7 +42,7 @@ export default function AboutYou({ onComplete, onBack }) {
   const [direction, setDirection] = useState("next");
   const [animKey, setAnimKey]     = useState(0);
   const [form, setForm]           = useState({
-    name: "", ageGroup: null, lifeStage: "", supportType: "", sleep: "", stress: "",
+    name: "", ageGroup: null, lifeStage: "", supportType: [], sleep: "", stress: "",
   });
   const [error, setError]         = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -60,7 +60,7 @@ export default function AboutYou({ onComplete, onBack }) {
     if (step === 1 && !form.name.trim())   return "Please tell us your name 💕";
     if (step === 2 && !form.ageGroup)      return "Please pick your age group";
     if (step === 3 && !form.lifeStage)     return "Please pick your life stage";
-    if (step === 4 && !form.supportType)   return "Please pick what you need most";
+    if (step === 4 && form.supportType.length === 0) return "Please pick at least one";
     if (step === 5 && !form.sleep)         return "Please pick your sleep pattern";
     if (step === 6 && !form.stress)        return "Please pick your stress level";
     return "";
@@ -267,26 +267,37 @@ export default function AboutYou({ onComplete, onBack }) {
               </div>
             )}
 
-            {/* ── Q4: SUPPORT TYPE ── */}
+            {/* ── Q4: SUPPORT TYPE (multi-select) ── */}
             {step === 4 && (
               <div>
                 <QLabel num="04" text="What kind of support are you looking for? 🎯" />
+                <p style={{ fontSize:"12px", color:"#9b7cc0", fontWeight:"700", fontFamily:"'Nunito',sans-serif", margin:"0 0 14px" }}>
+                  ✨ Select all that apply
+                </p>
                 <div style={S.cardGrid}>
                   {SUPPORT_TYPES.map(st => {
-                    const sel = form.supportType === st.label;
+                    const sel = form.supportType.includes(st.label);
                     return (
                       <button key={st.label} className="sel-card"
                         onClick={() => {
-                          setForm(f => ({ ...f, supportType: st.label }));
+                          setForm(f => {
+                            const arr = f.supportType.includes(st.label)
+                              ? f.supportType.filter(x => x !== st.label)
+                              : [...f.supportType, st.label];
+                            return { ...f, supportType: arr };
+                          });
                           setError("");
-                          setTimeout(() => goTo(5, "next"), 300);
                         }}
                         style={{
                           ...S.selCard,
                           background: sel ? "linear-gradient(135deg,rgba(124,92,191,0.18),rgba(74,127,193,0.18))" : "rgba(255,255,255,0.6)",
                           border: sel ? "2px solid rgba(124,92,191,0.5)" : "1.5px solid rgba(181,101,167,0.18)",
                           boxShadow: sel ? "0 6px 24px rgba(124,92,191,0.2)" : "0 2px 8px rgba(181,101,167,0.06)",
+                          position: "relative",
                         }}>
+                        {sel && (
+                          <div style={{ position:"absolute", top:"8px", right:"10px", width:"18px", height:"18px", borderRadius:"50%", background:"linear-gradient(135deg,#7c5cbf,#b565a7)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", color:"#fff", fontWeight:"900" }}>✓</div>
+                        )}
                         <span style={{ fontSize: "30px" }}>{st.emoji}</span>
                         <div style={{ fontWeight: "800", fontSize: "13px", color: sel ? "#7c5cbf" : "#3d2060", fontFamily: "'Nunito',sans-serif" }}>{st.label}</div>
                         <div style={{ fontSize: "11px", color: "#9b7cc0", fontWeight: "600" }}>{st.desc}</div>
