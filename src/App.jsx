@@ -3,9 +3,10 @@ import logo from "./assets/logo.png";
 import bg from "./assets/bg.jpg";
 import sticker from "./assets/girl-sticker.png";
 import yogaGirl from "./assets/yoga-girl.png";
-import Assessment from "./pages/Assessment";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
 
-// ── Pre-generated petal data ──────────────────────────────────────────────────
 const PETAL_DATA = Array.from({ length: 12 }, (_, i) => ({
   id: i,
   size: 14 + (i * 3.7) % 18,
@@ -15,7 +16,6 @@ const PETAL_DATA = Array.from({ length: 12 }, (_, i) => ({
   emoji: ["🌸", "🌺", "🌷", "💮"][i % 4],
 }));
 
-// ── FLOATING PETALS ───────────────────────────────────────────────────────────
 function FloatingPetals() {
   return (
     <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 1 }}>
@@ -60,15 +60,10 @@ function FloatingPetals() {
   );
 }
 
-// ── FLIP CARD ─────────────────────────────────────────────────────────────────
 function FlipCard({ icon, title, text, backText, topBadge }) {
   const [flipped, setFlipped] = useState(false);
   return (
-    <div
-      style={S.flipWrapper}
-      onMouseEnter={() => setFlipped(true)}
-      onMouseLeave={() => setFlipped(false)}
-    >
+    <div style={S.flipWrapper} onMouseEnter={() => setFlipped(true)} onMouseLeave={() => setFlipped(false)}>
       <div style={{ ...S.flipInner, transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}>
         <div style={S.flipFront}>
           {topBadge && <div style={S.stepNumBadge}>{topBadge}</div>}
@@ -88,7 +83,7 @@ function FlipCard({ icon, title, text, backText, topBadge }) {
 }
 
 // ── PAGES ─────────────────────────────────────────────────────────────────────
-function HomePage({ onStartAssessment }) {
+function HomePage() {
   return (
     <section style={S.hero}>
       <div style={S.heroRow}>
@@ -102,26 +97,22 @@ function HomePage({ onStartAssessment }) {
               <div style={S.mascotSub}>Your PCOD companion is here for you</div>
             </div>
           </div>
-
           <h1 className="hero-animate" style={{ ...S.h1, animationDelay: "0.35s", opacity: 0 }}>
             Your Safe Space for <span style={S.pink}>PCOD Lifestyle Balance</span>
           </h1>
-
           <p className="hero-animate" style={{ ...S.subtext, animationDelay: "0.5s", opacity: 0 }}>
             Track your lifestyle habits, understand hormonal balance,
             and receive personalized guidance to manage PCOD naturally.
           </p>
-
           <div className="hero-animate" style={{ animationDelay: "0.65s" }}>
             <div style={S.heroBtns}>
-              <button className="pulse-btn" style={S.primaryBtn} onClick={onStartAssessment}>
+              <button className="pulse-btn" style={{ ...S.primaryBtn, cursor: "default", opacity: 0.85 }}>
                 🚀 Start Assessment
               </button>
               <button style={S.secondaryBtn}>Learn More</button>
             </div>
           </div>
         </div>
-
         <div style={S.heroRight}>
           <div className="hero-animate" style={{ ...S.heroIllustrationCard, opacity: 0, animationDelay: "0.4s" }}>
             <div style={S.heroIllustrationCircle}>
@@ -227,10 +218,7 @@ function ContactPage() {
         ))}
         <div style={{ marginBottom: "20px" }}>
           <label style={S.label}>Message</label>
-          <textarea
-            style={{ ...S.input, height: "100px", resize: "vertical" }}
-            placeholder="Your message..."
-          />
+          <textarea style={{ ...S.input, height: "100px", resize: "vertical" }} placeholder="Your message..." />
         </div>
         <button style={S.primaryBtn}>Send Message 💌</button>
       </div>
@@ -238,12 +226,20 @@ function ContactPage() {
   );
 }
 
+// ── AUTH PAGE ─────────────────────────────────────────────────────────────────
+function AuthPage({ screen, onSwitch, onSuccess }) {
+  return screen === "login"
+    ? <Login onLogin={onSuccess} onGoSignup={() => onSwitch("signup")} />
+    : <Signup onSignUp={() => onSwitch("login")} onGoLogin={() => onSwitch("login")} />;
+}
+
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [active, setActive] = useState("home");
+  const [active, setActive]         = useState("home");
+  const [authScreen, setAuthScreen] = useState("signup");
 
   const NAV_TABS = [
-    { id: "home",       label: "Home",         component: <HomePage onStartAssessment={() => setActive("assessment")} /> },
+    { id: "home",       label: "Home",         component: <HomePage /> },
     { id: "features",   label: "Features",     component: <FeaturesPage />   },
     { id: "howitworks", label: "How It Works", component: <HowItWorksPage /> },
     { id: "about",      label: "About",        component: <AboutPage />      },
@@ -252,7 +248,8 @@ export default function App() {
 
   const ALL_TABS = [
     ...NAV_TABS,
-    { id: "assessment", label: "Assessment", component: <Assessment /> },
+    { id: "auth",       label: "Auth",       component: <AuthPage screen={authScreen} onSwitch={(s) => setAuthScreen(s)} onSuccess={() => setActive("dashboard")} /> },
+    { id: "dashboard",  label: "Dashboard",  component: <Dashboard onLogout={() => setActive("home")} /> },
   ];
 
   const current = ALL_TABS.find((t) => t.id === active);
@@ -262,37 +259,45 @@ export default function App() {
       <style>{`
         .nav-tab:hover { color: #ff4f8b !important; }
       `}</style>
-      <div style={S.root}>
-        <div style={S.overlay} />
+      <div style={active === "dashboard" ? {} : S.root}>
+        {active !== "dashboard" && <div style={S.overlay} />}
         {active === "home" && <FloatingPetals />}
 
-        <header style={S.header}>
-          <div style={S.headerInner}>
-            <div style={S.logoBox}>
-              <img src={logo} alt="HerSpace" style={S.logoImg} />
-            </div>
-            <nav style={S.tabBar}>
-              {NAV_TABS.map((tab) => (
-                <button key={tab.id} className="nav-tab"
-                  onClick={() => setActive(tab.id)}
-                  style={{ ...S.tab, ...(active === tab.id ? S.tabActive : {}) }}>
-                  {tab.label}
-                  {active === tab.id && <div style={S.tabUnderline} />}
+        {active !== "dashboard" && (
+          <header style={S.header}>
+            <div style={S.headerInner}>
+              <div style={S.logoBox}>
+                <img src={logo} alt="HerSpace" style={S.logoImg} />
+              </div>
+              <nav style={S.tabBar}>
+                {NAV_TABS.map((tab) => (
+                  <button key={tab.id} className="nav-tab"
+                    onClick={() => setActive(tab.id)}
+                    style={{ ...S.tab, ...(active === tab.id ? S.tabActive : {}) }}>
+                    {tab.label}
+                    {active === tab.id && <div style={S.tabUnderline} />}
+                  </button>
+                ))}
+              </nav>
+              <div style={S.authBtns}>
+                <button style={S.loginBtn} onClick={() => { setAuthScreen("login"); setActive("auth"); }}>
+                  Login
                 </button>
-              ))}
-            </nav>
-            <div style={S.authBtns}>
-              <button style={S.loginBtn} onClick={() => setActive("assessment")}>Login</button>
-              <button style={S.signupBtn} onClick={() => setActive("assessment")}>Sign Up</button>
+                <button style={S.signupBtn} onClick={() => { setAuthScreen("signup"); setActive("auth"); }}>
+                  Sign Up
+                </button>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
-        <main style={S.main}>{current.component}</main>
+        <main style={active === "dashboard" ? {} : S.main}>{current.component}</main>
 
-        <footer style={S.footer}>
-          © 2026 HerSpace · "Your mental health is a priority." 🌸
-        </footer>
+        {active !== "dashboard" && (
+          <footer style={S.footer}>
+            © 2026 HerSpace · "Your mental health is a priority." 🌸
+          </footer>
+        )}
       </div>
     </>
   );
