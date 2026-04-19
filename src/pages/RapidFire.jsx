@@ -1,569 +1,614 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import dashBg from "../assets/dashboard.png";
 
-// ── QUESTIONS PER AGE GROUP ────────────────────────────────────────────────────
-const QUESTIONS = {
-  teen: [
-    {
-      id: 1, q: "How do you usually feel after school?", emoji: "🎒",
-      options: [
-        { label: "Completely drained, need to lie down", emoji: "😩", color: "red" },
-        { label: "Tired but still able to do things",    emoji: "😐", color: "green" },
-        { label: "Fine but emotionally sensitive",       emoji: "💜", color: "purple" },
-        { label: "Still energetic",                      emoji: "⚡", color: "blue" },
-      ],
-    },
-    {
-      id: 2, q: "How regular is your sleep schedule?", emoji: "🌙",
-      options: [
-        { label: "Very irregular (late nights, scrolling)", emoji: "😵",  color: "red" },
-        { label: "I try but it's inconsistent",             emoji: "🤷‍♀️", color: "green" },
-        { label: "I sleep but wake easily or unrested",     emoji: "😟",  color: "purple" },
-        { label: "Mostly consistent and refreshing",        emoji: "😴",  color: "blue" },
-      ],
-    },
-    {
-      id: 3, q: "How does academic pressure affect you?", emoji: "📚",
-      options: [
-        { label: "I feel overwhelmed or shut down",  emoji: "🥺", color: "red" },
-        { label: "I procrastinate or lose routine",  emoji: "😓", color: "green" },
-        { label: "I become emotionally sensitive",   emoji: "💔", color: "purple" },
-        { label: "I handle it fairly well",          emoji: "💪", color: "blue" },
-      ],
-    },
-    {
-      id: 4, q: "How does your body feel around your period?", emoji: "🌸",
-      options: [
-        { label: "Very painful or exhausting",           emoji: "😣", color: "red" },
-        { label: "Uncomfortable but manageable",         emoji: "😌", color: "green" },
-        { label: "Mood swings or emotional sensitivity", emoji: "🌊", color: "purple" },
-        { label: "Mostly normal",                        emoji: "✅", color: "blue" },
-      ],
-    },
-    {
-      id: 5, q: "What do you feel you need most right now?", emoji: "💭",
-      options: [
-        { label: "More rest and calm",      emoji: "🛌", color: "red" },
-        { label: "Better daily habits",     emoji: "📅", color: "green" },
-        { label: "Emotional balance",       emoji: "💞", color: "purple" },
-        { label: "Growth and improvement",  emoji: "🚀", color: "blue" },
-      ],
-    },
-  ],
-
-  young: [
-    {
-      id: 1, q: "How are your energy levels most days?", emoji: "🔋",
-      options: [
-        { label: "Constantly exhausted", emoji: "😩", color: "red" },
-        { label: "Up and down",          emoji: "📉", color: "green" },
-        { label: "Low around periods",   emoji: "🌊", color: "purple" },
-        { label: "Stable",               emoji: "⚡", color: "blue" },
-      ],
-    },
-    {
-      id: 2, q: "How structured is your daily routine?", emoji: "📋",
-      options: [
-        { label: "No real routine",                       emoji: "🌀",  color: "red" },
-        { label: "I try but it's inconsistent",           emoji: "🤷‍♀️", color: "green" },
-        { label: "Mostly consistent but stress disrupts", emoji: "😓",  color: "purple" },
-        { label: "Very structured",                       emoji: "✅",  color: "blue" },
-      ],
-    },
-    {
-      id: 3, q: "How does stress affect your body?", emoji: "😰",
-      options: [
-        { label: "I crash physically or mentally",     emoji: "💢",  color: "red" },
-        { label: "I lose discipline in habits",        emoji: "😞",  color: "green" },
-        { label: "I notice PMS, acne or mood changes", emoji: "🌸",  color: "purple" },
-        { label: "I manage stress well",               emoji: "🧘‍♀️", color: "blue" },
-      ],
-    },
-    {
-      id: 4, q: "How balanced is your lifestyle right now?", emoji: "⚖️",
-      options: [
-        { label: "Very unhealthy habits",           emoji: "🍔", color: "red" },
-        { label: "Trying but inconsistent",         emoji: "🤞", color: "green" },
-        { label: "Healthy but sensitive to stress", emoji: "😌", color: "purple" },
-        { label: "Balanced and stable",             emoji: "💫", color: "blue" },
-      ],
-    },
-    {
-      id: 5, q: "What is your biggest wellness goal?", emoji: "🎯",
-      options: [
-        { label: "Recover balance",             emoji: "🌺", color: "red" },
-        { label: "Build consistent habits",     emoji: "📅", color: "green" },
-        { label: "Reduce hormonal sensitivity", emoji: "💜", color: "purple" },
-        { label: "Optimize health",             emoji: "🚀", color: "blue" },
-      ],
-    },
-  ],
-
-  adult: [
-    {
-      id: 1, q: "How do you usually feel by the end of the day?", emoji: "🌆",
-      options: [
-        { label: "Completely drained",    emoji: "😮‍💨", color: "red" },
-        { label: "Tired but manageable",  emoji: "😐",   color: "green" },
-        { label: "Emotionally sensitive", emoji: "💜",   color: "purple" },
-        { label: "Still productive",      emoji: "⚡",   color: "blue" },
-      ],
-    },
-    {
-      id: 2, q: "How consistent are your wellness habits?", emoji: "🏃‍♀️",
-      options: [
-        { label: "Very inconsistent",                     emoji: "🌀",  color: "red" },
-        { label: "I try but struggle to maintain",        emoji: "😓",  color: "green" },
-        { label: "Mostly consistent but stress disrupts", emoji: "🤷‍♀️", color: "purple" },
-        { label: "Very consistent",                       emoji: "✅",  color: "blue" },
-      ],
-    },
-    {
-      id: 3, q: "How does stress affect your health?", emoji: "🧠",
-      options: [
-        { label: "I feel burned out quickly",            emoji: "🔥", color: "red" },
-        { label: "It disrupts my routine",               emoji: "📉", color: "green" },
-        { label: "It triggers PMS or hormonal symptoms", emoji: "🌸", color: "purple" },
-        { label: "I handle it well",                     emoji: "💪", color: "blue" },
-      ],
-    },
-    {
-      id: 4, q: "How is your sleep quality?", emoji: "🛌",
-      options: [
-        { label: "Poor and irregular", emoji: "😵", color: "red" },
-        { label: "Inconsistent",       emoji: "😟", color: "green" },
-        { label: "Light or sensitive", emoji: "😌", color: "purple" },
-        { label: "Deep and stable",    emoji: "😴", color: "blue" },
-      ],
-    },
-    {
-      id: 5, q: "What feels most true for you now?", emoji: "💭",
-      options: [
-        { label: "I need recovery",              emoji: "🌺", color: "red" },
-        { label: "I need better rhythm",         emoji: "📅", color: "green" },
-        { label: "I need hormonal balance",      emoji: "💜", color: "purple" },
-        { label: "I want to optimize my health", emoji: "🚀", color: "blue" },
-      ],
-    },
-  ],
-
-  hormonal: [
-    {
-      id: 1, q: "How are your energy levels throughout the day?", emoji: "🔋",
-      options: [
-        { label: "Low most of the day",             emoji: "😩", color: "red" },
-        { label: "Good morning but drop later",     emoji: "📉", color: "green" },
-        { label: "Okay but emotionally sensitive",  emoji: "💜", color: "purple" },
-        { label: "Stable and energetic",            emoji: "⚡", color: "blue" },
-      ],
-    },
-    {
-      id: 2, q: "How has your sleep been recently?", emoji: "🌙",
-      options: [
-        { label: "Poor sleep or frequent waking", emoji: "😵", color: "red" },
-        { label: "Sleep but wake feeling tired",  emoji: "😟", color: "green" },
-        { label: "Light or sensitive sleep",      emoji: "😌", color: "purple" },
-        { label: "Deep and refreshing sleep",     emoji: "😴", color: "blue" },
-      ],
-    },
-    {
-      id: 3, q: "How does stress affect you now?", emoji: "🌊",
-      options: [
-        { label: "I feel physically exhausted",      emoji: "💢",  color: "red" },
-        { label: "It disrupts my routine or habits", emoji: "📉",  color: "green" },
-        { label: "It affects my mood or hormones",   emoji: "🌸",  color: "purple" },
-        { label: "I manage stress quite well",       emoji: "🧘‍♀️", color: "blue" },
-      ],
-    },
-    {
-      id: 4, q: "How would you describe your body changes recently?", emoji: "🌺",
-      options: [
-        { label: "More fatigue and low stamina",  emoji: "😮‍💨", color: "red" },
-        { label: "Weight or metabolism changes",  emoji: "⚖️",  color: "green" },
-        { label: "Hormonal or mood fluctuations", emoji: "🌊",  color: "purple" },
-        { label: "No major changes",              emoji: "✅",  color: "blue" },
-      ],
-    },
-    {
-      id: 5, q: "What feels most important for your wellness right now?", emoji: "💭",
-      options: [
-        { label: "Rest and recovery",    emoji: "🛌", color: "red" },
-        { label: "Better daily balance", emoji: "📅", color: "green" },
-        { label: "Hormonal stability",   emoji: "💜", color: "purple" },
-        { label: "Long-term vitality",   emoji: "🚀", color: "blue" },
-      ],
-    },
-  ],
-};
-
-// ── COLOR MAP ─────────────────────────────────────────────────────────────────
-const COLOR_STYLES = {
-  red:    { bg:"rgba(220,60,100,0.1)",  border:"rgba(220,60,100,0.3)",  sel:"linear-gradient(135deg,#dc3c64,#c45e8a)", dot:"#dc3c64", flood:"rgba(220,60,100,0.18)" },
-  green:  { bg:"rgba(91,158,138,0.1)", border:"rgba(91,158,138,0.3)", sel:"linear-gradient(135deg,#5b9e8a,#4a8fa8)", dot:"#5b9e8a", flood:"rgba(91,158,138,0.18)" },
-  purple: { bg:"rgba(124,92,191,0.1)", border:"rgba(124,92,191,0.3)", sel:"linear-gradient(135deg,#7c5cbf,#b565a7)", dot:"#7c5cbf", flood:"rgba(124,92,191,0.18)" },
-  blue:   { bg:"rgba(74,127,193,0.1)", border:"rgba(74,127,193,0.3)", sel:"linear-gradient(135deg,#4a7fc1,#5b8fd4)", dot:"#4a7fc1", flood:"rgba(74,127,193,0.18)" },
-};
-
-// ── RESULT LOGIC ──────────────────────────────────────────────────────────────
-function getResult(picks) {
-  const counts = { red:0, green:0, purple:0, blue:0 };
-  picks.forEach(c => { counts[c] = (counts[c] || 0) + 1; });
-  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  const MAP = {
-    red: {
-      zone: "Stabilize & Recover 🌸", color: "#dc3c64",
-      bg: "linear-gradient(135deg,rgba(220,60,100,0.15),rgba(196,94,138,0.15))",
-      border: "rgba(220,60,100,0.35)", floodColor: "rgba(220,60,100,0.12)",
-      msg: "Your body is asking for deep rest and recovery. Focus on gentle movement, nourishing food, and stress relief to restore your hormonal balance.",
-      actions: ["😴 Prioritize 8+ hrs sleep", "🥗 Anti-inflammatory meals", "🧘‍♀️ Daily 10-min meditation"],
-    },
-    green: {
-      zone: "Build Consistency 💎", color: "#5b9e8a",
-      bg: "linear-gradient(135deg,rgba(91,158,138,0.15),rgba(74,127,193,0.15))",
-      border: "rgba(91,158,138,0.35)", floodColor: "rgba(91,158,138,0.12)",
-      msg: "You're on the right track but need stronger habits. Consistency in sleep, meals and movement will make a huge difference.",
-      actions: ["🏋️ Exercise 3x per week", "🥙 Meal prep on Sundays", "📅 Track your cycle"],
-    },
-    purple: {
-      zone: "Support Sensitivity 🌺", color: "#7c5cbf",
-      bg: "linear-gradient(135deg,rgba(124,92,191,0.15),rgba(181,101,167,0.15))",
-      border: "rgba(124,92,191,0.35)", floodColor: "rgba(124,92,191,0.12)",
-      msg: "Your system is hormonally sensitive right now. Embrace calming routines, mindful eating and gentle stress management.",
-      actions: ["☀️ Morning sunlight daily", "🥜 Magnesium-rich foods", "📓 Daily journaling"],
-    },
-    blue: {
-      zone: "Maintain & Optimize ✨", color: "#4a7fc1",
-      bg: "linear-gradient(135deg,rgba(74,127,193,0.15),rgba(91,158,138,0.15))",
-      border: "rgba(74,127,193,0.35)", floodColor: "rgba(74,127,193,0.12)",
-      msg: "You're thriving! Keep your excellent habits going and explore advanced wellness practices like cycle syncing.",
-      actions: ["✅ Continue current habits", "🌀 Try cycle syncing", "🩺 Schedule annual checkup"],
-    },
-  };
-  return { ...MAP[top], topColor: top };
+// ⭐ CHANGE 1 — Shuffle helper
+function shuffleArray(array) {
+  return [...array].sort(() => Math.random() - 0.5);
 }
 
-// ── AGE LABEL MAP ─────────────────────────────────────────────────────────────
-const AGE_LABEL = {
-  teen:     { label: "Teens (13–17)",               emoji: "🌱" },
-  young:    { label: "Young Adults (18–25)",         emoji: "✨" },
-  adult:    { label: "Adults (26–35)",               emoji: "💎" },
-  hormonal: { label: "Hormone Balance Stage (35+)",  emoji: "🌸" },
+const SYMPTOM_QUESTIONS = [
+  {
+    id: "irregularPeriods",
+    q: "Have your periods been a bit unpredictable lately? 🌸",
+    reassurance: "Don't worry — many women experience this. We're just trying to understand your body better.",
+    emoji: "🌸",
+    severityLabels: [
+      "Rarely — just occasionally off",
+      "Sometimes — fairly often irregular",
+      "Often — hard to predict most months",
+      "Almost always — completely unpredictable",
+    ],
+  },
+  {
+    id: "acne",
+    q: "Has your skin been acting up lately — more breakouts or oiliness? ✨",
+    reassurance: "Skin changes are super common. This helps us spot hormonal patterns early.",
+    emoji: "✨",
+    severityLabels: [
+      "Rarely — mild occasional breakouts",
+      "Sometimes — recurring acne",
+      "Often — frequent and inflamed",
+      "Almost always — severe and persistent",
+    ],
+  },
+  {
+    id: "facialHair",
+    q: "Have you noticed more facial or body hair than usual? 🌿",
+    reassurance: "This is more common than you think. No judgment here — just honest answers help us most.",
+    emoji: "🌿",
+    severityLabels: [
+      "Rarely — just a little noticeable",
+      "Sometimes — moderate growth",
+      "Often — quite noticeable",
+      "Almost always — heavy and fast growing",
+    ],
+  },
+  {
+    id: "weightGain",
+    q: "Has managing your weight been harder than usual lately? ⚖️",
+    reassurance: "Hormonal changes can make this really difficult. You're not alone in this.",
+    emoji: "⚖️",
+    severityLabels: [
+      "Rarely — slightly harder to lose",
+      "Sometimes — noticeable changes",
+      "Often — significant gain",
+      "Almost always — rapid uncontrolled gain",
+    ],
+  },
+  {
+    id: "hairThinning",
+    q: "Have you been noticing more hair fall than usual? 💆‍♀️",
+    reassurance: "Hair fall can be an early signal. Being aware of it is already a great step.",
+    emoji: "💆‍♀️",
+    severityLabels: [
+      "Rarely — just a little more than usual",
+      "Sometimes — moderate hair fall",
+      "Often — heavy loss",
+      "Almost always — visible patches or bald spots",
+    ],
+  },
+  {
+    id: "darkPatches",
+    q: "Have you noticed darker skin patches on your neck or underarms? 🌑",
+    reassurance: "This can be a skin response to hormonal changes. It's good that you're paying attention.",
+    emoji: "🌑",
+    severityLabels: [
+      "Rarely — faint, barely there",
+      "Sometimes — noticeable patches",
+      "Often — prominent and dark",
+      "Almost always — very dark and widespread",
+    ],
+  },
+  {
+    id: "moodSwings",
+    q: "Have you been feeling more mood swings or fatigue lately? 🌊",
+    reassurance: "Your emotional health matters just as much. This is a safe space to be honest.",
+    emoji: "🌊",
+    severityLabels: [
+      "Rarely — occasionally, not too bad",
+      "Sometimes — fairly often",
+      "Often — most days",
+      "Almost always — every single day",
+    ],
+  },
+  {
+    id: "ovulationIssues",
+    q: "Have you had concerns about ovulation or fertility? 🤍",
+    reassurance: "Many women have these concerns. Knowing early helps you take control of your health.",
+    emoji: "🤍",
+    severityLabels: [
+      "Rarely — just a feeling something's off",
+      "Sometimes — occasionally irregular",
+      "Often — frequently irregular",
+      "Almost always — confirmed absent",
+    ],
+  },
+];
+
+const LIFESTYLE_QUESTIONS = {
+  teen: [
+    { id: "exercise", q: "How often do you move your body — sports, walks, anything? 🏃‍♀️", emoji: "🏃‍♀️" },
+    { id: "junkFood", q: "How often do you reach for chips, soda, or sugary snacks? 🍔",    emoji: "🍔" },
+    { id: "sleep",    q: "Is your sleep schedule consistent on school days? 🌙",             emoji: "🌙" },
+    { id: "stress",   q: "How often does exam stress just take over your mood? 📚",          emoji: "📚" },
+  ],
+  young: [
+    { id: "exercise", q: "Real talk — how often do you work out or stay active? 💪",          emoji: "💪" },
+    { id: "junkFood", q: "How often are you eating out or grabbing processed food? 🥡",       emoji: "🥡" },
+    { id: "sleep",    q: "Is your sleep schedule something you'd call consistent? 😴",         emoji: "😴" },
+    { id: "stress",   q: "How often does work or college stress overwhelm you? 💼",           emoji: "💼" },
+  ],
+  adult: [
+    { id: "exercise", q: "How often does your week include any physical activity? 🏋️‍♀️",   emoji: "🏋️‍♀️" },
+    { id: "junkFood", q: "How often are high-carb or processed meals part of your day? 🍕",  emoji: "🍕" },
+    { id: "sleep",    q: "Honestly, how's your sleep quality been lately? 🛌",                emoji: "🛌" },
+    { id: "stress",   q: "How often does life stress affect how you feel physically? 🧠",     emoji: "🧠" },
+  ],
+  hormonal: [
+    { id: "exercise", q: "How often do you fit in gentle movement — yoga, walks? 🧘‍♀️",      emoji: "🧘‍♀️" },
+    { id: "junkFood", q: "How often do sugary or inflammatory foods sneak into your meals? 🍭", emoji: "🍭" },
+    { id: "sleep",    q: "Do you wake up tired even after a full night's sleep? 🌛",           emoji: "🌛" },
+    { id: "stress",   q: "How often does stress show up as physical symptoms for you? 🌊",    emoji: "🌊" },
+  ],
 };
 
-// ── CONFETTI ──────────────────────────────────────────────────────────────────
+const LIFESTYLE_OPTIONS = [
+  { label: "Never",     value: "Never",     emoji: "✅", color: "green" },
+  { label: "Sometimes", value: "Sometimes", emoji: "🤔", color: "blue"  },
+  { label: "Often",     value: "Often",     emoji: "😟", color: "amber" },
+  { label: "Always",    value: "Always",    emoji: "🔴", color: "red"   },
+];
+
+const COLOR_STYLES = {
+  green: { bg:"rgba(91,158,138,0.12)",  border:"rgba(91,158,138,0.35)",  sel:"linear-gradient(135deg,#5b9e8a,#4a8fa8)" },
+  blue:  { bg:"rgba(74,127,193,0.12)",  border:"rgba(74,127,193,0.35)",  sel:"linear-gradient(135deg,#4a7fc1,#5b8fd4)" },
+  amber: { bg:"rgba(186,117,23,0.12)",  border:"rgba(186,117,23,0.35)",  sel:"linear-gradient(135deg,#ba7517,#ef9f27)" },
+  red:   { bg:"rgba(220,60,100,0.12)",  border:"rgba(220,60,100,0.35)",  sel:"linear-gradient(135deg,#dc3c64,#c45e8a)" },
+};
+
 function Confetti() {
-  const pieces = Array.from({ length: 38 }, (_, i) => ({
-    id: i,
-    left: `${(i * 7.3) % 100}%`,
-    delay: `${(i * 0.08) % 1.2}s`,
-    duration: `${1.2 + (i * 0.07) % 1}s`,
+  const pieces = Array.from({ length: 40 }, (_, i) => ({
+    id: i, left: `${(i * 7.3) % 100}%`,
+    delay: `${(i * 0.08) % 1.2}s`, duration: `${1.2 + (i * 0.07) % 1}s`,
     size: `${6 + (i * 2) % 8}px`,
-    rotate: `${(i * 37) % 360}deg`,
-    colors: ["#b565a7","#7c5cbf","#4a7fc1","#5b9e8a","#dc3c64","#f5c842","#e88ab8","#7ab3e8"],
+    color: ["#1D9E75","#7c5cbf","#4a7fc1","#b565a7","#BA7517","#f5c842"][i % 6],
     shape: i % 3,
   }));
-
   return (
     <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:100, overflow:"hidden" }}>
       <style>{`
-        @keyframes confettiFall {
-          0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-          80%  { opacity: 1; }
-          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-        }
-        @keyframes confettiSway {
-          0%,100% { margin-left: 0px; }
-          25%     { margin-left: 18px; }
-          75%     { margin-left: -18px; }
-        }
+        @keyframes cFall { 0%{opacity:1;transform:translateY(-20px) rotate(0deg)} 100%{opacity:0;transform:translateY(110vh) rotate(720deg)} }
+        @keyframes cSway { 0%,100%{margin-left:0} 25%{margin-left:18px} 75%{margin-left:-18px} }
       `}</style>
       {pieces.map(p => (
-        <div key={p.id} style={{
-          position:"absolute", top:"-20px", left: p.left,
-          width: p.size, height: p.size,
-          background: p.colors[p.id % p.colors.length],
-          borderRadius: p.shape === 0 ? "50%" : p.shape === 1 ? "2px" : "0",
-          animation: `confettiFall ${p.duration} ${p.delay} ease-in forwards, confettiSway ${p.duration} ${p.delay} ease-in-out infinite`,
-          transform: `rotate(${p.rotate})`,
-          opacity: 0,
-        }} />
+        <div key={p.id} style={{ position:"absolute", top:"-20px", left:p.left, width:p.size, height:p.size, background:p.color, borderRadius: p.shape===0?"50%":p.shape===1?"2px":"0", animation:`cFall ${p.duration} ${p.delay} ease-in forwards, cSway ${p.duration} ${p.delay} ease-in-out infinite` }}/>
       ))}
     </div>
   );
 }
 
-// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
-export default function RapidFire({ userData, onFinish }) {
-  const ageKey    = userData?.ageGroup?.value || "young";
-  const userName  = userData?.name || "you";
-  const questions = QUESTIONS[ageKey] || QUESTIONS.young;
-  const ageInfo   = AGE_LABEL[ageKey] || AGE_LABEL.young;
+export default function RapidFire({ userData, onGoToZoneReport }) {
+  const ageKey   = userData?.ageGroup?.value || userData?.ageGroup || "young";
+  const userName = userData?.name || "you";
 
-  const [stage,      setStage]      = useState("intro");
-  const [qIndex,     setQIndex]     = useState(0);
-  const [picks,      setPicks]      = useState([]);       // color string per Q
-  const [selected,   setSelected]   = useState(null);
-  const [direction,  setDirection]  = useState("next");
-  const [animKey,    setAnimKey]    = useState(0);
-  const [result,     setResult]     = useState(null);
-  const [flooding,   setFlooding]   = useState(false);
-  const [floodColor, setFloodColor] = useState("transparent");
+  // ⭐ CHANGE 2 — Shuffle symptom questions (declared FIRST so totalQs can use it)
+  const [symptomQuestions] = useState(() => shuffleArray(SYMPTOM_QUESTIONS));
+
+  // ⭐ CHANGE 3 — Shuffle lifestyle questions
+  const [lifestyleQs] = useState(() =>
+    shuffleArray(LIFESTYLE_QUESTIONS[ageKey] || LIFESTYLE_QUESTIONS.young)
+  );
+
+  // ⭐ CHANGE 4 — Use shuffled array lengths (safe now, both declared above)
+  const totalQs = symptomQuestions.length + lifestyleQs.length;
+
+  const [stage,        setStage]        = useState("intro");
+  const [sAIndex,      setSAIndex]      = useState(0);
+  const [sBIndex,      setSBIndex]      = useState(0);
+  const [symAnswers,   setSymAnswers]   = useState({});
+  const [symPick,      setSymPick]      = useState(null);
+  const [lifAnswers,   setLifAnswers]   = useState([]);
+  const [lifPick,      setLifPick]      = useState(null);
+  const [animKey,      setAnimKey]      = useState(0);
+  const [direction,    setDirection]    = useState("next");
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const current  = questions[qIndex];
-  const total    = questions.length;
-  const progressPct = Math.round((qIndex / total) * 100);
+  // ⭐ CHANGE 2 (cont.) — Use shuffled array for current question
+  const currentSym  = symptomQuestions[sAIndex]  || symptomQuestions[0];
+  const currentLife = lifestyleQs[sBIndex] || lifestyleQs[0];
 
-  // ── SELECT ANSWER ──
-  const handleSelect = (opt) => {
-    if (selected !== null) return;
-    setSelected(opt.color);
+  // ⭐ CHANGE 5 — Fix progress to use shuffled array length
+  const doneQs =
+    stage === "submitting"
+      ? totalQs
+      : stage === "sectionA" || stage === "sectionADetail"
+      ? sAIndex
+      : stage === "sectionB"
+      ? symptomQuestions.length + sBIndex
+      : 0;
+  const progressPct = Math.round((doneQs / totalQs) * 100);
 
+  const handleSymYesNo = (choice) => {
+    setSymPick(choice);
+    if (choice === "no") {
+      setTimeout(() => {
+        const newAnswers = { ...symAnswers, [currentSym.id]: { present: false, severity: 0 } };
+        setSymAnswers(newAnswers);
+        advanceSectionA();
+      }, 400);
+    } else {
+      setTimeout(() => setStage("sectionADetail"), 400);
+    }
+  };
+
+  const handleSeverity = (sev) => {
+    const newAnswers = { ...symAnswers, [currentSym.id]: { present: true, severity: sev } };
+    setSymAnswers(newAnswers);
+    setTimeout(() => advanceSectionA(), 400);
+  };
+
+  const advanceSectionA = () => {
+    const currentIndex = sAIndex;
+    const totalSymptoms = symptomQuestions.length;
+    if (currentIndex + 1 < totalSymptoms) {
+      setSymPick(null); setDirection("next"); setAnimKey(k => k + 1);
+      setSAIndex(currentIndex + 1); setStage("sectionA");
+    } else {
+      setSymPick(null); setDirection("next"); setAnimKey(k => k + 1); setSBIndex(0);
+      toast.success("Section A done! You're halfway there 🎉", {
+        position: "top-center", autoClose: 2800,
+        style: { fontFamily:"'Nunito',sans-serif", fontWeight:"700", fontSize:"13px" },
+      });
+      setStage("sectionBIntro");
+    }
+  };
+
+  // ⭐ CHANGE 6 — Include id in lifestyle answer payload + fix stale closure
+  const handleLifestyle = (opt) => {
+    setLifPick(opt.value);
+    const newAnswers = [
+      ...lifAnswers,
+      {
+        id:       currentLife.id,
+        question: currentLife.q,
+        answer:   opt.value,
+      },
+    ];
+    // capture current index NOW before any state update
+    const currentIndex = sBIndex;
+    const totalLifestyle = lifestyleQs.length;
     setTimeout(() => {
-      const newPicks = [...picks, opt.color];
-      if (qIndex + 1 < total) {
-        setPicks(newPicks);
-        setSelected(null);
-        setDirection("next");
-        setAnimKey(k => k + 1);
-        setQIndex(q => q + 1);
+      setLifAnswers(newAnswers);
+      if (currentIndex + 1 < totalLifestyle) {
+        setLifPick(null); setDirection("next"); setAnimKey(k => k + 1);
+        setSBIndex(currentIndex + 1);
       } else {
-        // last Q → compute result → flood animation → reveal
-        const res = getResult(newPicks);
-        setResult(res);
-        setStage("flooding");
-        setFloodColor(res.floodColor);
-        setFlooding(true);
-        setTimeout(() => {
-          setStage("result");
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3200);
-        }, 1400);
+        submitAssessment(newAnswers);
       }
-    }, 500);
+    }, 450);
   };
 
-  // ── PREV ──
-  const handlePrev = () => {
-    if (qIndex === 0) { setStage("intro"); return; }
-    const newPicks = picks.slice(0, -1);
-    setPicks(newPicks);
-    setSelected(null);
-    setDirection("prev");
-    setAnimKey(k => k + 1);
-    setQIndex(q => q - 1);
+  const submitAssessment = async (finalLifAnswers) => {
+    setLifPick(null);
+    setSBIndex(lifestyleQs.length);
+    setStage("submitting");
+    try {
+      // ⭐ CHANGE 7 — Map from shuffled array, not original constant
+      const symptomAnswers = symptomQuestions.map(q => ({
+        symptom:  q.id,
+        present:  symAnswers[q.id]?.present  ?? false,
+        severity: symAnswers[q.id]?.severity ?? 0,
+      }));
+      const { data } = await axios.post(
+        "http://localhost:5000/api/rapidfire",
+        { ageGroup: ageKey, symptomAnswers, lifestyleAnswers: finalLifAnswers },
+        { withCredentials: true }
+      );
+
+      toast.success("Your PCOD zone is ready! 🌸", {
+        position: "top-center", autoClose: 2000,
+        style: { fontFamily:"'Nunito',sans-serif", fontWeight:"700", fontSize:"13px" },
+      });
+      if (data.zone === "healthy") {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3200);
+      }
+
+      // Navigate to ZoneReport after toast shows
+      setTimeout(() => {
+        if (onGoToZoneReport) onGoToZoneReport(data);
+      }, 2200);
+
+    } catch (err) {
+      console.error("RapidFire submit error:", err);
+      setStage("sectionB");
+    }
   };
+
+  const handlePrev = () => {
+    const activeStages = ["sectionA", "sectionADetail", "sectionB"];
+    if (activeStages.includes(stage)) {
+      toast("Going back won't lose your answers 💾", {
+        position: "top-center", autoClose: 2000,
+        style: { fontFamily:"'Nunito',sans-serif", fontWeight:"700", fontSize:"13px" },
+      });
+    }
+    if (stage === "sectionADetail")                { setSymPick(null); setStage("sectionA"); return; }
+    if (stage === "sectionA" && sAIndex > 0)       { setDirection("prev"); setAnimKey(k=>k+1); setSAIndex(i=>i-1); setSymPick(null); return; }
+    if (stage === "sectionA" && sAIndex === 0)     { setStage("sectionAIntro"); return; }
+    if (stage === "sectionBIntro")                 {
+      setDirection("prev"); setAnimKey(k=>k+1);
+      // ⭐ CHANGE 9 — Use shuffled array length for back nav
+      setSAIndex(symptomQuestions.length - 1);
+      setStage("sectionA"); setSymPick(null); return;
+    }
+    if (stage === "sectionB" && sBIndex > 0)       { setDirection("prev"); setAnimKey(k=>k+1); setSBIndex(i=>i-1); setLifAnswers(a=>a.slice(0,-1)); setLifPick(null); return; }
+    if (stage === "sectionB" && sBIndex === 0)     { setStage("sectionBIntro"); }
+  };
+
+  const showProgress = stage === "sectionA" || stage === "sectionADetail" || stage === "sectionB";
 
   return (
-    <div style={{
-      ...S.root,
-      background: flooding ? floodColor : "#ede0f7",
-      transition: "background 1.2s ease",
-    }}>
-      <div style={S.bgImage} />
-      <div style={S.bgOverlay} />
-
-      {/* confetti */}
-      {showConfetti && result && <Confetti />}
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
-        @keyframes slideInNext { from{opacity:0;transform:translateX(52px)}  to{opacity:1;transform:translateX(0)} }
-        @keyframes slideInPrev { from{opacity:0;transform:translateX(-52px)} to{opacity:1;transform:translateX(0)} }
-        @keyframes popIn       { from{opacity:0;transform:scale(0.88) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
-        @keyframes starTwinkle { 0%,100%{opacity:0;transform:scale(0.3)} 50%{opacity:1;transform:scale(1.2)} }
-        @keyframes bigSparkle  { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 40%{opacity:0.9;transform:scale(1.3) rotate(45deg)} }
-        @keyframes floodPulse  { 0%{opacity:0.6} 50%{opacity:1} 100%{opacity:0.8} }
-        @keyframes zoneReveal  { 0%{opacity:0;transform:scale(0.7) translateY(30px)} 60%{transform:scale(1.05) translateY(-4px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
-
-        .intro-anim  { animation: popIn        0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
-        .q-next      { animation: slideInNext  0.38s cubic-bezier(0.22,1,0.36,1) both; }
-        .q-prev      { animation: slideInPrev  0.38s cubic-bezier(0.22,1,0.36,1) both; }
-        .res-pop     { animation: zoneReveal   0.7s cubic-bezier(0.34,1.56,0.64,1) both; }
-        .opt-card    { transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1); border: none; }
-        .opt-card:hover { transform: translateY(-4px) scale(1.03) !important; }
-        .start-btn:hover  { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(148,108,210,0.5) !important; }
-        .finish-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(148,108,210,0.5) !important; }
-        .prev-btn:hover   { background: rgba(181,101,167,0.18) !important; }
-      `}</style>
-
-      {/* sparkles */}
-      {[...Array(12)].map((_, i) => (
-        <div key={i} style={{
-          position:"fixed", pointerEvents:"none", zIndex:2,
-          top:`${(i*17.3)%95}%`, left:`${(i*13.7)%95}%`,
-          fontSize:`${10+(i*3)%10}px`,
-          animation:`${i%2===0?"bigSparkle":"starTwinkle"} ${3+(i*0.6)%4}s ${(i*0.5)%7}s ease-in-out infinite`,
-          opacity:0,
-        }}>{i%3===0?"✨":i%3===1?"⭐":"💫"}</div>
+    <div style={{ ...S.root, background: stage === "submitting" ? "rgba(124,92,191,0.08)" : "#ede0f7", transition:"background 0.8s ease" }}>
+      <div style={S.bgImage}/><div style={S.bgOverlay}/>
+      {showConfetti && <Confetti/>}
+      <style>{CSS}</style>
+      <ToastContainer toastStyle={{ borderRadius:"16px", boxShadow:"0 8px 28px rgba(181,101,167,0.2)" }}/>
+      {[...Array(10)].map((_,i) => (
+        <div key={i} style={{ position:"fixed", pointerEvents:"none", zIndex:2, top:`${(i*17)%95}%`, left:`${(i*13)%95}%`, fontSize:`${10+(i*3)%10}px`, animation:`${i%2===0?"bigSparkle":"starTwinkle"} ${3+(i*0.6)%4}s ${(i*0.5)%6}s ease-in-out infinite`, opacity:0 }}>
+          {i%3===0?"✨":i%3===1?"⭐":"💫"}
+        </div>
       ))}
 
       <div style={S.page}>
         <div style={S.card}>
 
-          {/* ══ INTRO SCREEN ══ */}
+          {/* ══ INTRO ══ */}
           {stage === "intro" && (
-            <div className="intro-anim" style={{ textAlign:"center", padding:"10px 0" }}>
-              <div style={{ fontSize:"52px", marginBottom:"14px" }}>🔥</div>
-              <div style={S.badge}>⚡ Rapid Fire Check-in</div>
-              <h1 style={S.introTitle}>Quick check-in, {userName}!</h1>
-              <p style={S.introSub}>
-                Answer these rapid-fire questions so we can understand your wellness needs and guide you to the right zone. ✨
+            <div className="pop-in" style={{ textAlign:"center" }}>
+              <div style={{ fontSize:"54px", marginBottom:"14px" }}>🔥</div>
+              <div style={S.badge}>⚡ PCOD Risk Screening</div>
+              <h1 style={{ ...S.title, margin:"14px 0 10px" }}>Quick check-in, {userName}!</h1>
+              <p style={{ fontSize:"14px", color:"#5a4070", lineHeight:1.75, marginBottom:"20px" }}>
+                Answer honestly — this helps us understand your PCOD risk and give you the most accurate zone.
               </p>
-              <div style={S.agePill}>
-                <span style={{ fontSize:"20px" }}>{ageInfo.emoji}</span>
-                <span style={{ fontSize:"13px", fontWeight:"800", color:"#7c5cbf", fontFamily:"'Nunito',sans-serif" }}>
-                  {ageInfo.label}
-                </span>
-              </div>
-              <div style={S.statsRow}>
+              <div style={{ display:"flex", justifyContent:"center", gap:"12px", marginBottom:"28px" }}>
                 {[
-                  { emoji:"❓", val:"5",      label:"Questions" },
-                  { emoji:"⏱️", val:"~2 min", label:"Duration" },
-                  { emoji:"🎯", val:"4",      label:"Zones" },
-                ].map((s, i) => (
+                  { emoji:"🩺", val:"8",      label:"Symptom Qs" },
+                  { emoji:"💬", val:"4",      label:"Lifestyle Qs" },
+                  { emoji:"⏱️", val:"~3 min", label:"Duration" },
+                ].map((s,i) => (
                   <div key={i} style={S.statBox}>
                     <div style={{ fontSize:"22px" }}>{s.emoji}</div>
-                    <div style={{ fontSize:"16px", fontWeight:"900", color:"#2d1a4a", fontFamily:"'Nunito',sans-serif" }}>{s.val}</div>
+                    <div style={{ fontSize:"15px", fontWeight:"900", color:"#2d1a4a", fontFamily:"'Nunito',sans-serif" }}>{s.val}</div>
                     <div style={{ fontSize:"11px", color:"#9b7cc0", fontWeight:"700" }}>{s.label}</div>
                   </div>
                 ))}
               </div>
-              <button className="start-btn" onClick={() => setStage("quiz")} style={S.startBtn}>
-                Let's Go 🚀
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginBottom:"24px" }}>
+                <div style={{ background:"rgba(181,101,167,0.08)", borderRadius:"14px", padding:"14px 16px", border:"1px solid rgba(181,101,167,0.18)", textAlign:"left" }}>
+                  <div style={{ fontSize:"20px", marginBottom:"6px" }}>🩺</div>
+                  <div style={{ fontSize:"12px", fontWeight:"800", color:"#7c5cbf", fontFamily:"'Nunito',sans-serif", marginBottom:"4px" }}>Section A</div>
+                  <div style={{ fontSize:"11px", color:"#5a4070", fontWeight:"600", lineHeight:1.6 }}>PCOD symptoms — same for everyone</div>
+                </div>
+                <div style={{ background:"rgba(91,158,138,0.08)", borderRadius:"14px", padding:"14px 16px", border:"1px solid rgba(91,158,138,0.18)", textAlign:"left" }}>
+                  <div style={{ fontSize:"20px", marginBottom:"6px" }}>🌿</div>
+                  <div style={{ fontSize:"12px", fontWeight:"800", color:"#5b9e8a", fontFamily:"'Nunito',sans-serif", marginBottom:"4px" }}>Section B</div>
+                  <div style={{ fontSize:"11px", color:"#5a4070", fontWeight:"600", lineHeight:1.6 }}>Lifestyle questions — personalised for you</div>
+                </div>
+              </div>
+              <button className="start-btn" onClick={() => setStage("sectionAIntro")} style={S.primaryBtn}>
+                Let's Begin 🚀
               </button>
             </div>
           )}
 
-          {/* ══ FLOODING SCREEN ══ */}
-          {stage === "flooding" && (
-            <div style={{ textAlign:"center", padding:"40px 0", animation:"floodPulse 1.2s ease infinite" }}>
-              <div style={{ fontSize:"60px", marginBottom:"16px" }}>⏳</div>
-              <p style={{ fontFamily:"'Nunito',sans-serif", fontSize:"18px", fontWeight:"900", color:"#2d1a4a" }}>
-                Calculating your zone…
+          {/* ══ SECTION A INTRO ══ */}
+          {stage === "sectionAIntro" && (
+            <div className="pop-in" style={{ textAlign:"center" }}>
+              <div style={{ fontSize:"52px", marginBottom:"14px" }}>🩺</div>
+              <div style={{ ...S.badge, background:"linear-gradient(135deg,rgba(181,101,167,0.2),rgba(124,92,191,0.2))", color:"#7c5cbf" }}>Section A of 2</div>
+              <h2 style={{ ...S.title, margin:"16px 0 10px" }}>Symptom Check</h2>
+              <p style={{ fontSize:"14px", color:"#5a4070", lineHeight:1.8, marginBottom:"20px" }}>
+                We'll ask about <strong>8 common PCOD symptoms</strong>. Tell us if you experience each one — and if yes, how severe.
               </p>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"10px", marginBottom:"20px", textAlign:"left" }}>
+                {[
+                  { emoji:"🌸", text:"Irregular periods & ovulation" },
+                  { emoji:"✨", text:"Skin, hair & weight changes"   },
+                  { emoji:"🌊", text:"Mood swings & energy"          },
+                  { emoji:"🤍", text:"Fertility-related concerns"    },
+                ].map((item, i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:"10px", background:"rgba(181,101,167,0.07)", borderRadius:"12px", padding:"12px 14px", border:"1px solid rgba(181,101,167,0.15)" }}>
+                    <span style={{ fontSize:"18px" }}>{item.emoji}</span>
+                    <span style={{ fontSize:"12px", fontWeight:"700", color:"#3d2060", fontFamily:"'Nunito',sans-serif" }}>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background:"rgba(124,92,191,0.07)", borderRadius:"12px", padding:"12px 16px", marginBottom:"20px", border:"1px solid rgba(124,92,191,0.15)" }}>
+                <p style={{ fontSize:"12px", color:"#7c5cbf", margin:0, fontWeight:"700", fontFamily:"'Nunito',sans-serif" }}>
+                  💡 Answer based on your experience over the last 3–6 months
+                </p>
+              </div>
+              <button className="start-btn" onClick={() => { setStage("sectionA"); setAnimKey(k=>k+1); }} style={S.primaryBtn}>
+                Start Section A 🩺
+              </button>
+              <button onClick={() => setStage("intro")} style={S.ghostBtn}>← Back to overview</button>
             </div>
           )}
 
-          {/* ══ QUIZ SCREEN ══ */}
-          {stage === "quiz" && (
+          {/* ══ PROGRESS BAR ══ */}
+          {showProgress && (
             <>
-              {/* top bar: prev + progress % + badge */}
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"14px" }}>
-                <button className="prev-btn" onClick={handlePrev} style={S.prevBtn}>
-                  ← Prev
-                </button>
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"2px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"10px" }}>
+                <button className="prev-btn" onClick={handlePrev} style={S.prevBtn}>← Back</button>
+                <div style={{ textAlign:"center" }}>
                   <div style={{ fontSize:"11px", fontWeight:"800", color:"#b565a7", fontFamily:"'Nunito',sans-serif" }}>
-                    {qIndex + 1} / {total}
+                    {stage === "sectionB" ? "Section B — Lifestyle" : "Section A — Symptoms"}
                   </div>
-                  <div style={{ fontSize:"11px", fontWeight:"700", color:"#9b7cc0", fontFamily:"'Nunito',sans-serif" }}>
-                    {progressPct}% done
+                  <div style={{ fontSize:"11px", color:"#9b7cc0", fontWeight:"700", fontFamily:"'Nunito',sans-serif" }}>
+                    {progressPct}% complete
                   </div>
                 </div>
-                <div style={S.badge}>🔥 Rapid Fire</div>
+                <div style={S.badge}>{stage === "sectionB" ? "🌿 Lifestyle" : "🩺 Symptoms"}</div>
               </div>
-
-              {/* progress bar */}
-              <div style={{ height:"6px", background:"rgba(181,101,167,0.15)", borderRadius:"10px", marginBottom:"22px", overflow:"hidden" }}>
-                <div style={{
-                  height:"100%", borderRadius:"10px",
-                  background:"linear-gradient(90deg,#b565a7,#7c5cbf,#4a7fc1)",
-                  width:`${progressPct}%`, transition:"width 0.4s ease",
-                }} />
-              </div>
-
-              {/* question with slide direction */}
-              <div key={animKey} className={direction === "next" ? "q-next" : "q-prev"}>
-                <div style={{ textAlign:"center", marginBottom:"20px" }}>
-                  <div style={{ fontSize:"36px", marginBottom:"10px" }}>{current.emoji}</div>
-                  <h2 style={{ fontFamily:"'Nunito',sans-serif", fontSize:"clamp(14px,2.5vw,17px)", fontWeight:"900", color:"#2d1a4a", margin:0, lineHeight:1.45 }}>
-                    {current.q}
-                  </h2>
-                </div>
-
-                {/* 2×2 grid */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"11px" }}>
-                  {current.options.map((opt, i) => {
-                    const cs       = COLOR_STYLES[opt.color];
-                    const isPicked = selected !== null && opt.color === selected;
-                    const isDimmed = selected !== null && opt.color !== selected;
-                    // if we went back and this Q already has an answer, highlight it
-                    const prevPick = selected === null && picks[qIndex] === opt.color;
-                    return (
-                      <button
-                        key={i}
-                        className="opt-card"
-                        onClick={() => handleSelect(opt)}
-                        style={{
-                          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                          gap:"7px", padding:"16px 10px", borderRadius:"18px",
-                          background: (isPicked || prevPick) ? cs.sel : cs.bg,
-                          border:`1.5px solid ${isDimmed ? "rgba(181,101,167,0.08)" : cs.border}`,
-                          boxShadow: (isPicked || prevPick) ? `0 6px 24px ${cs.border}` : "0 2px 10px rgba(181,101,167,0.07)",
-                          opacity: isDimmed ? 0.38 : 1,
-                          transform: (isPicked || prevPick) ? "scale(1.04)" : "scale(1)",
-                          transition:"all 0.2s cubic-bezier(0.34,1.56,0.64,1)",
-                          backdropFilter:"blur(8px)",
-                          cursor: selected !== null ? "default" : "pointer",
-                        }}
-                      >
-                        <span style={{ fontSize:"26px" }}>{opt.emoji}</span>
-                        <span style={{
-                          fontSize:"11.5px", fontWeight:"800",
-                          color: (isPicked || prevPick) ? "#fff" : "#3d2060",
-                          fontFamily:"'Nunito',sans-serif",
-                          textAlign:"center", lineHeight:1.35,
-                        }}>{opt.label}</span>
-                        <div style={{ width:"7px", height:"7px", borderRadius:"50%", background: (isPicked || prevPick) ? "rgba(255,255,255,0.65)" : cs.dot, marginTop:"2px" }} />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div style={{ textAlign:"center", marginTop:"16px", fontSize:"12px", color:"#9b7cc0", fontWeight:"700", fontFamily:"'Nunito',sans-serif" }}>
-                You're doing amazing, {userName}! ✨
+              <div style={{ height:"6px", background:"rgba(181,101,167,0.15)", borderRadius:"10px", marginBottom:"24px", overflow:"hidden" }}>
+                <div style={{ height:"100%", borderRadius:"10px", background:"linear-gradient(90deg,#b565a7,#7c5cbf,#4a7fc1)", width:`${progressPct}%`, transition:"width 0.4s ease" }}/>
               </div>
             </>
           )}
 
-          {/* ══ RESULT SCREEN ══ */}
-          {stage === "result" && result && (
-            <div className="res-pop" style={{ textAlign:"center", padding:"8px 0" }}>
-              <div style={{ fontSize:"54px", marginBottom:"10px" }}>🎉</div>
-              <div style={{ fontSize:"12px", fontWeight:"800", color:"#9b7cc0", fontFamily:"'Nunito',sans-serif", letterSpacing:"1px", marginBottom:"6px" }}>
-                YOUR WELLNESS ZONE
-              </div>
-              <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(18px,3vw,24px)", fontWeight:"900", color:"#2d1a4a", margin:"0 0 6px", lineHeight:1.3 }}>
-                {result.zone}
-              </h2>
-
-              {/* zone color flood badge */}
-              <div style={{
-                display:"inline-block", padding:"5px 16px", borderRadius:"20px", marginBottom:"16px",
-                background: result.bg, border:`1.5px solid ${result.border}`,
-                fontSize:"12px", fontWeight:"800", color: result.color, fontFamily:"'Nunito',sans-serif",
-              }}>
-                ✨ Personalized just for you, {userName}
-              </div>
-
-              <div style={{ background:result.bg, border:`1.5px solid ${result.border}`, borderRadius:"20px", padding:"18px 20px", marginBottom:"20px", textAlign:"left" }}>
-                <p style={{ fontSize:"13.5px", color:"#3d2060", lineHeight:1.75, margin:"0 0 14px", fontWeight:"600" }}>
-                  {result.msg}
-                </p>
-                <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
-                  {result.actions.map((a, i) => (
-                    <div key={i} style={{ display:"flex", alignItems:"center", gap:"8px", background:"rgba(255,255,255,0.6)", borderRadius:"10px", padding:"9px 12px", fontSize:"13px", fontWeight:"700", color:"#3d2060", backdropFilter:"blur(6px)" }}>
-                      {a}
-                    </div>
-                  ))}
+          {/* ══ SECTION A — Yes/No ══ */}
+          {stage === "sectionA" && (
+            <div key={animKey} className={direction==="next"?"slide-next":"slide-prev"}>
+              <div style={{ textAlign:"center", marginBottom:"20px" }}>
+                <div style={{ fontSize:"38px", marginBottom:"10px" }}>{currentSym.emoji}</div>
+                {/* ⭐ CHANGE 8 — Use shuffled array length in counter */}
+                <div style={{ fontSize:"11px", fontWeight:"800", color:"#9b7cc0", fontFamily:"'Nunito',sans-serif", letterSpacing:"1px", marginBottom:"10px" }}>
+                  SYMPTOM {sAIndex + 1} OF {symptomQuestions.length}
                 </div>
+                <h2 style={{ fontFamily:"'Nunito',sans-serif", fontSize:"clamp(15px,2.5vw,18px)", fontWeight:"900", color:"#2d1a4a", margin:"0 0 10px", lineHeight:1.5 }}>
+                  {currentSym.q}
+                </h2>
+                <p style={{ fontSize:"12px", color:"#9b7cc0", fontWeight:"600", fontFamily:"'DM Sans',sans-serif", lineHeight:1.65, margin:"0 4px", fontStyle:"italic" }}>
+                  {currentSym.reassurance}
+                </p>
               </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
+                {[
+                  { label:"Not really",      sublabel:"Doesn't apply to me",  color:"green", val:"no"  },
+                  { label:"Yes, this is me", sublabel:"I do experience this", color:"red",   val:"yes" },
+                ].map((opt) => {
+                  const cs     = COLOR_STYLES[opt.color];
+                  const picked = symPick === opt.val;
+                  return (
+                    <button key={opt.val} className="opt-card" onClick={() => handleSymYesNo(opt.val)} style={{
+                      display:"flex", flexDirection:"column", alignItems:"center", gap:"8px",
+                      padding:"28px 16px", borderRadius:"20px", cursor:"pointer",
+                      background: picked ? cs.sel : cs.bg,
+                      border:`1.5px solid ${cs.border}`,
+                      boxShadow: picked ? `0 8px 28px ${cs.border}` : "0 2px 10px rgba(181,101,167,0.07)",
+                      transform: picked ? "scale(1.05)" : "scale(1)",
+                      transition:"all 0.2s cubic-bezier(0.34,1.56,0.64,1)",
+                    }}>
+                      <span style={{ fontSize:"16px", fontWeight:"900", color:picked?"#fff":"#2d1a4a", fontFamily:"'Nunito',sans-serif", textAlign:"center", lineHeight:1.3 }}>{opt.label}</span>
+                      <span style={{ fontSize:"11px", fontWeight:"700", color:picked?"rgba(255,255,255,0.8)":"#9b7cc0", fontFamily:"'Nunito',sans-serif" }}>{opt.sublabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-              <button className="finish-btn" onClick={onFinish} style={S.finishBtn}>
-                Go to Dashboard 🌸
+          {/* ══ SECTION A — Severity (vertical rows like screenshot) ══ */}
+          {stage === "sectionADetail" && (
+            <div className="pop-in">
+              <div style={{ textAlign:"center", marginBottom:"24px" }}>
+                <div style={{ fontSize:"34px", marginBottom:"10px" }}>{currentSym.emoji}</div>
+                <div style={{ fontSize:"12px", fontWeight:"800", color:"#b565a7", fontFamily:"'Nunito',sans-serif", marginBottom:"10px", letterSpacing:"0.5px" }}>
+                  HOW BAD IS IT REALLY? 👀
+                </div>
+                <h2 style={{ fontFamily:"'Nunito',sans-serif", fontSize:"clamp(15px,2.5vw,17px)", fontWeight:"900", color:"#2d1a4a", margin:"0 0 10px", lineHeight:1.5 }}>
+                  {currentSym.q}
+                </h2>
+                <p style={{ fontSize:"12px", color:"#9b7cc0", fontWeight:"600", fontFamily:"'DM Sans',sans-serif", lineHeight:1.65, margin:"0 4px", fontStyle:"italic" }}>
+                  {currentSym.reassurance}
+                </p>
+              </div>
+              {/* Full-width vertical rows: number badge left, label right */}
+              <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
+                {currentSym.severityLabels.map((label, i) => {
+                  const sev  = i + 1;
+                  const RAMP = [
+                    { bg:"rgba(250,238,218,0.75)", border:"rgba(186,117,23,0.28)",  circle:"linear-gradient(135deg,#EF9F27,#BA7517)", text:"#633806" },
+                    { bg:"rgba(245,220,190,0.75)", border:"rgba(186,117,23,0.45)",  circle:"linear-gradient(135deg,#BA7517,#854F0B)", text:"#412402" },
+                    { bg:"rgba(245,196,179,0.75)", border:"rgba(216,90,48,0.38)",   circle:"linear-gradient(135deg,#D85A30,#993C1D)", text:"#712B13" },
+                    { bg:"rgba(244,192,209,0.75)", border:"rgba(212,83,126,0.38)",  circle:"linear-gradient(135deg,#D4537E,#993556)", text:"#4B1528" },
+                  ];
+                  const r = RAMP[i] || RAMP[3];
+                  return (
+                    <button key={sev} className="sev-row" onClick={() => handleSeverity(sev)} style={{
+                      display:"flex", alignItems:"center", gap:"18px",
+                      width:"100%", padding:"18px 22px", borderRadius:"18px",
+                      background: r.bg, border:`1.5px solid ${r.border}`,
+                      cursor:"pointer", textAlign:"left",
+                      boxShadow:"0 2px 12px rgba(181,101,167,0.08)",
+                      transition:"all 0.2s cubic-bezier(0.34,1.56,0.64,1)",
+                    }}>
+                      <div style={{ width:"40px", height:"40px", borderRadius:"50%", background: r.circle, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 4px 14px ${r.border}` }}>
+                        <span style={{ fontSize:"16px", fontWeight:"900", color:"#fff", fontFamily:"'Nunito',sans-serif" }}>{sev}</span>
+                      </div>
+                      <span style={{ fontSize:"15px", fontWeight:"800", color: r.text, fontFamily:"'Nunito',sans-serif", lineHeight:1.45, flex:1 }}>
+                        {label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ══ SECTION B INTRO ══ */}
+          {stage === "sectionBIntro" && (
+            <div className="pop-in" style={{ textAlign:"center" }}>
+              <div style={{ fontSize:"52px", marginBottom:"14px" }}>🌿</div>
+              <div style={{ ...S.badge, background:"linear-gradient(135deg,rgba(91,158,138,0.2),rgba(74,143,168,0.2))", color:"#5b9e8a" }}>Section B of 2</div>
+              <h2 style={{ ...S.title, margin:"16px 0 10px" }}>Lifestyle Check</h2>
+              <p style={{ fontSize:"14px", color:"#5a4070", lineHeight:1.8, marginBottom:"20px" }}>
+                Almost there! <strong>4 personalised lifestyle questions</strong> based on your age group.
+              </p>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"10px", marginBottom:"20px", textAlign:"left" }}>
+                {[
+                  { emoji:"💪", text:"Exercise habits"     },
+                  { emoji:"🍕", text:"Diet & food choices" },
+                  { emoji:"😴", text:"Sleep quality"       },
+                  { emoji:"🧠", text:"Stress levels"       },
+                ].map((item, i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:"10px", background:"rgba(91,158,138,0.07)", borderRadius:"12px", padding:"12px 14px", border:"1px solid rgba(91,158,138,0.18)" }}>
+                    <span style={{ fontSize:"18px" }}>{item.emoji}</span>
+                    <span style={{ fontSize:"12px", fontWeight:"700", color:"#3d2060", fontFamily:"'Nunito',sans-serif" }}>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background:"rgba(91,158,138,0.07)", borderRadius:"12px", padding:"12px 16px", marginBottom:"20px", border:"1px solid rgba(91,158,138,0.18)" }}>
+                <p style={{ fontSize:"12px", color:"#5b9e8a", margin:0, fontWeight:"700", fontFamily:"'Nunito',sans-serif" }}>
+                  🎯 Section A complete! Your zone report is just 4 questions away.
+                </p>
+              </div>
+              <button className="start-btn" onClick={() => { setStage("sectionB"); setAnimKey(k=>k+1); }} style={{ ...S.primaryBtn, background:"linear-gradient(135deg,#5b9e8a,#4a8fa8,#4a7fc1)" }}>
+                Start Section B 🌿
               </button>
+              <button onClick={handlePrev} style={S.ghostBtn}>← Back to symptoms</button>
+            </div>
+          )}
+
+          {/* ══ SECTION B — Lifestyle ══ */}
+          {stage === "sectionB" && (
+            <div key={`b-${animKey}`} className={direction==="next"?"slide-next":"slide-prev"}>
+              <div style={{ textAlign:"center", marginBottom:"22px" }}>
+                <div style={{ fontSize:"36px", marginBottom:"10px" }}>{currentLife.emoji}</div>
+                <div style={{ fontSize:"11px", fontWeight:"800", color:"#5b9e8a", fontFamily:"'Nunito',sans-serif", letterSpacing:"1px", marginBottom:"8px" }}>
+                  LIFESTYLE {sBIndex + 1} OF {lifestyleQs.length}
+                </div>
+                <h2 style={{ fontFamily:"'Nunito',sans-serif", fontSize:"clamp(14px,2.5vw,17px)", fontWeight:"900", color:"#2d1a4a", margin:"0 0 10px", lineHeight:1.5 }}>
+                  {currentLife.q}
+                </h2>
+                <p style={{ fontSize:"12px", color:"#9b7cc0", fontWeight:"600", fontFamily:"'DM Sans',sans-serif", lineHeight:1.65, margin:"0 4px", fontStyle:"italic" }}>
+                  There are no right or wrong answers — just be honest with yourself. 🌿
+                </p>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
+                {LIFESTYLE_OPTIONS.map((opt) => {
+                  const cs     = COLOR_STYLES[opt.color];
+                  const picked = lifPick === opt.value;
+                  return (
+                    <button key={opt.value} className="opt-card" onClick={() => handleLifestyle(opt)} style={{
+                      display:"flex", flexDirection:"column", alignItems:"center", gap:"8px",
+                      padding:"24px 12px", borderRadius:"18px", cursor:"pointer",
+                      background: picked ? cs.sel : cs.bg,
+                      border:`1.5px solid ${cs.border}`,
+                      boxShadow: picked ? `0 6px 24px ${cs.border}` : "0 2px 8px rgba(181,101,167,0.07)",
+                      transform: picked ? "scale(1.04)" : "scale(1)",
+                      transition:"all 0.2s cubic-bezier(0.34,1.56,0.64,1)",
+                    }}>
+                      <span style={{ fontSize:"28px" }}>{opt.emoji}</span>
+                      <span style={{ fontSize:"14px", fontWeight:"900", color:picked?"#fff":"#2d1a4a", fontFamily:"'Nunito',sans-serif" }}>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ══ SUBMITTING ══ */}
+          {stage === "submitting" && (
+            <div style={{ textAlign:"center", padding:"40px 0" }}>
+              <div style={{ fontSize:"56px", marginBottom:"16px", animation:"spin 1.5s linear infinite", display:"inline-block" }}>⏳</div>
+              <p style={{ fontFamily:"'Nunito',sans-serif", fontSize:"17px", fontWeight:"900", color:"#2d1a4a" }}>Analysing your responses…</p>
+              <p style={{ fontSize:"13px", color:"#9b7cc0", fontWeight:"700", fontFamily:"'Nunito',sans-serif" }}>Calculating your PCOD risk zone</p>
             </div>
           )}
 
@@ -573,22 +618,34 @@ export default function RapidFire({ userData, onFinish }) {
   );
 }
 
-// ── STYLES ────────────────────────────────────────────────────────────────────
+const CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
+  @keyframes slideInNext { from{opacity:0;transform:translateX(52px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes slideInPrev { from{opacity:0;transform:translateX(-52px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes popIn       { from{opacity:0;transform:scale(0.88) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  @keyframes starTwinkle { 0%,100%{opacity:0;transform:scale(0.3)} 50%{opacity:1;transform:scale(1.2)} }
+  @keyframes bigSparkle  { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 40%{opacity:0.9;transform:scale(1.3) rotate(45deg)} }
+  @keyframes spin        { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .slide-next  { animation: slideInNext 0.38s cubic-bezier(0.22,1,0.36,1) both; }
+  .slide-prev  { animation: slideInPrev 0.38s cubic-bezier(0.22,1,0.36,1) both; }
+  .pop-in      { animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .opt-card    { transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1); border:none; }
+  .opt-card:hover { transform: translateY(-4px) scale(1.03) !important; }
+  .sev-row:hover  { transform: translateX(8px) !important; box-shadow: 0 6px 22px rgba(181,101,167,0.2) !important; }
+  .start-btn:hover  { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(148,108,210,0.5) !important; }
+  .prev-btn:hover   { background: rgba(181,101,167,0.18) !important; }
+`;
+
 const S = {
-  root:      { minHeight:"100vh", fontFamily:"'DM Sans',sans-serif", position:"relative", overflow:"hidden", transition:"background 1.2s ease" },
-  bgImage:   { position:"fixed", inset:0, zIndex:0, backgroundImage:`url(${dashBg})`, backgroundSize:"cover", backgroundPosition:"center", filter:"blur(14px) brightness(0.82) saturate(1.3)", transform:"scale(1.08)", pointerEvents:"none" },
-  bgOverlay: { position:"fixed", inset:0, zIndex:1, background:"linear-gradient(160deg,rgba(240,225,255,0.45) 0%,rgba(220,200,255,0.35) 40%,rgba(200,220,255,0.4) 100%)", pointerEvents:"none" },
-  page:      { position:"relative", zIndex:3, maxWidth:"560px", margin:"0 auto", padding:"40px 24px 60px", display:"flex", alignItems:"center", minHeight:"100vh", boxSizing:"border-box" },
-  card:      { width:"100%", background:"rgba(255,255,255,0.68)", backdropFilter:"blur(28px)", WebkitBackdropFilter:"blur(28px)", borderRadius:"32px", padding:"36px 36px", boxShadow:"0 16px 56px rgba(181,101,167,0.2), inset 0 1px 0 rgba(255,255,255,0.95)", border:"1px solid rgba(255,255,255,0.85)" },
-
-  badge:     { display:"inline-block", background:"linear-gradient(135deg,rgba(181,101,167,0.18),rgba(148,108,210,0.18))", color:"#7c5cbf", fontWeight:"800", fontSize:"12px", padding:"5px 14px", borderRadius:"20px", border:"1px solid rgba(181,101,167,0.25)", fontFamily:"'Nunito',sans-serif" },
-  prevBtn:   { background:"rgba(181,101,167,0.1)", border:"1px solid rgba(181,101,167,0.2)", borderRadius:"12px", padding:"6px 14px", fontSize:"12px", fontWeight:"800", color:"#7c5cbf", cursor:"pointer", fontFamily:"'Nunito',sans-serif", transition:"all 0.18s ease" },
-
-  introTitle:{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(22px,3vw,28px)", fontWeight:"900", color:"#2d1a4a", margin:"0 0 10px", lineHeight:1.2 },
-  introSub:  { fontSize:"14px", color:"#5a4070", lineHeight:1.75, margin:"0 0 20px", maxWidth:"380px", marginLeft:"auto", marginRight:"auto" },
-  agePill:   { display:"inline-flex", alignItems:"center", gap:"8px", background:"linear-gradient(135deg,rgba(181,101,167,0.12),rgba(124,92,191,0.12))", border:"1.5px solid rgba(181,101,167,0.25)", borderRadius:"30px", padding:"8px 18px", marginBottom:"22px" },
-  statsRow:  { display:"flex", justifyContent:"center", gap:"14px", marginBottom:"26px" },
-  statBox:   { display:"flex", flexDirection:"column", alignItems:"center", gap:"4px", background:"rgba(255,255,255,0.6)", border:"1px solid rgba(181,101,167,0.18)", borderRadius:"16px", padding:"14px 18px", backdropFilter:"blur(8px)", minWidth:"80px" },
-  startBtn:  { width:"100%", padding:"15px", border:"none", borderRadius:"22px", background:"linear-gradient(135deg,#b565a7,#7c5cbf,#4a7fc1)", color:"#fff", fontWeight:"800", fontSize:"15px", cursor:"pointer", fontFamily:"'Nunito',sans-serif", boxShadow:"0 6px 24px rgba(148,108,210,0.4)", transition:"all 0.2s ease" },
-  finishBtn: { width:"100%", padding:"15px", border:"none", borderRadius:"22px", background:"linear-gradient(135deg,#b565a7,#7c5cbf,#4a7fc1)", color:"#fff", fontWeight:"800", fontSize:"15px", cursor:"pointer", fontFamily:"'Nunito',sans-serif", boxShadow:"0 6px 24px rgba(148,108,210,0.4)", transition:"all 0.2s ease" },
+  root:       { minHeight:"100vh", fontFamily:"'DM Sans',sans-serif", position:"relative", overflow:"hidden" },
+  bgImage:    { position:"fixed", inset:0, zIndex:0, backgroundImage:`url(${dashBg})`, backgroundSize:"cover", backgroundPosition:"center", filter:"blur(14px) brightness(0.82) saturate(1.3)", transform:"scale(1.08)", pointerEvents:"none" },
+  bgOverlay:  { position:"fixed", inset:0, zIndex:1, background:"linear-gradient(160deg,rgba(240,225,255,0.45) 0%,rgba(220,200,255,0.35) 40%,rgba(200,220,255,0.4) 100%)", pointerEvents:"none" },
+  page:       { position:"relative", zIndex:3, maxWidth:"680px", margin:"0 auto", padding:"40px 32px 60px", display:"flex", alignItems:"center", minHeight:"100vh", boxSizing:"border-box" },
+  card:       { width:"100%", background:"rgba(255,255,255,0.68)", backdropFilter:"blur(28px)", WebkitBackdropFilter:"blur(28px)", borderRadius:"32px", padding:"36px 40px", boxShadow:"0 16px 56px rgba(181,101,167,0.2), inset 0 1px 0 rgba(255,255,255,0.95)", border:"1px solid rgba(255,255,255,0.85)" },
+  badge:      { display:"inline-block", background:"linear-gradient(135deg,rgba(181,101,167,0.18),rgba(148,108,210,0.18))", color:"#7c5cbf", fontWeight:"800", fontSize:"12px", padding:"5px 14px", borderRadius:"20px", border:"1px solid rgba(181,101,167,0.25)", fontFamily:"'Nunito',sans-serif" },
+  prevBtn:    { background:"rgba(181,101,167,0.1)", border:"1px solid rgba(181,101,167,0.2)", borderRadius:"12px", padding:"6px 14px", fontSize:"12px", fontWeight:"800", color:"#7c5cbf", cursor:"pointer", fontFamily:"'Nunito',sans-serif" },
+  title:      { fontFamily:"'Playfair Display',serif", fontSize:"clamp(20px,3vw,26px)", fontWeight:"900", color:"#2d1a4a" },
+  statBox:    { display:"flex", flexDirection:"column", alignItems:"center", gap:"4px", background:"rgba(255,255,255,0.6)", border:"1px solid rgba(181,101,167,0.18)", borderRadius:"16px", padding:"14px 22px", minWidth:"90px" },
+  primaryBtn: { width:"100%", padding:"15px", border:"none", borderRadius:"22px", background:"linear-gradient(135deg,#b565a7,#7c5cbf,#4a7fc1)", color:"#fff", fontWeight:"800", fontSize:"15px", cursor:"pointer", fontFamily:"'Nunito',sans-serif", boxShadow:"0 6px 24px rgba(148,108,210,0.4)", transition:"all 0.2s ease" },
+  ghostBtn:   { width:"100%", padding:"10px", border:"none", borderRadius:"14px", background:"transparent", color:"#9b7cc0", fontWeight:"700", fontSize:"13px", cursor:"pointer", fontFamily:"'Nunito',sans-serif", marginTop:"10px" },
 };

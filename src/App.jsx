@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import logo from "./assets/logo.png";
 import bg from "./assets/bg.jpg";
 import sticker from "./assets/girl-sticker.png";
@@ -7,6 +7,11 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import LearnMore from "./pages/LearnMore";
+// ── CHANGE 1 ── Import ZoneReport
+import ZoneReport from "./pages/ZoneReport";
+import DoctorConnect from "./pages/DoctorConnect";
+import DoctorDashboard from "./pages/DoctorDashboard";
+
 
 const PETAL_DATA = Array.from({ length: 12 }, (_, i) => ({
   id: i,
@@ -46,11 +51,8 @@ function FloatingPetals() {
       `}</style>
       {PETAL_DATA.map((p) => (
         <div key={p.id} style={{
-          position: "absolute",
-          left: `${p.left}%`,
-          top: "-40px",
-          fontSize: `${p.size}px`,
-          opacity: 0,
+          position: "absolute", left: `${p.left}%`, top: "-40px",
+          fontSize: `${p.size}px`, opacity: 0,
           animation: `fall ${p.duration}s ${p.delay}s linear infinite, sway ${p.duration * 0.6}s ${p.delay}s ease-in-out infinite`,
           pointerEvents: "none",
         }}>
@@ -108,7 +110,7 @@ function HomePage({ onLearnMore }) {
           <div className="hero-animate" style={{ animationDelay: "0.65s" }}>
             <div style={S.heroBtns}>
               <button className="pulse-btn" style={{ ...S.primaryBtn, cursor: "default", opacity: 0.85 }}>
-                 Let's Begin ✨
+                Let's Begin ✨
               </button>
               <button style={S.secondaryBtn} onClick={onLearnMore}>Learn More</button>
             </div>
@@ -128,12 +130,12 @@ function HomePage({ onLearnMore }) {
 
 function FeaturesPage() {
   const features = [
-    { icon: "😊", title: "Mood Tracking",    text: "Log your daily emotions and spot patterns over time.",        backText: "Our smart mood tracker helps you identify emotional triggers and patterns with beautiful daily & weekly charts." },
-    { icon: "🤖", title: "AI Guidance",       text: "Get personalized lifestyle advice powered by AI.",            backText: "Our AI analyzes your unique PCOD profile and gives tailored advice on diet, sleep, and stress management." },
-    { icon: "📊", title: "Progress Insights", text: "Beautiful visual charts to track your wellness journey.",     backText: "Radar charts, trend graphs, and weekly summaries help you see your progress at a glance." },
-    { icon: "🔒", title: "Safe & Private",    text: "Your data is encrypted and never shared.",                   backText: "End-to-end encryption ensures your health data stays 100% private — only you can see it." },
-    { icon: "🌙", title: "Sleep Analysis",    text: "Understand how sleep affects your mental health.",           backText: "Track sleep quality and duration, and discover how it directly impacts your mood and PCOD symptoms." },
-    { icon: "🧘", title: "Mindfulness",       text: "Guided breathing and meditation exercises.",                 backText: "Daily 5-minute mindfulness sessions proven to reduce cortisol and improve hormonal balance." },
+    { icon: "😊", title: "Mood Tracking",    text: "Log your daily emotions and spot patterns over time.",      backText: "Our smart mood tracker helps you identify emotional triggers and patterns with beautiful daily & weekly charts." },
+    { icon: "🤖", title: "AI Guidance",       text: "Get personalized lifestyle advice powered by AI.",          backText: "Our AI analyzes your unique PCOD profile and gives tailored advice on diet, sleep, and stress management." },
+    { icon: "📊", title: "Progress Insights", text: "Beautiful visual charts to track your wellness journey.",   backText: "Radar charts, trend graphs, and weekly summaries help you see your progress at a glance." },
+    { icon: "🔒", title: "Safe & Private",    text: "Your data is encrypted and never shared.",                 backText: "End-to-end encryption ensures your health data stays 100% private — only you can see it." },
+    { icon: "🌙", title: "Sleep Analysis",    text: "Understand how sleep affects your mental health.",         backText: "Track sleep quality and duration, and discover how it directly impacts your mood and PCOD symptoms." },
+    { icon: "🧘", title: "Mindfulness",       text: "Guided breathing and meditation exercises.",               backText: "Daily 5-minute mindfulness sessions proven to reduce cortisol and improve hormonal balance." },
   ];
   return (
     <section style={S.page}>
@@ -227,83 +229,222 @@ function ContactPage() {
   );
 }
 
-// ── AUTH PAGE ─────────────────────────────────────────────────────────────────
-function AuthPage({ screen, onSwitch, onSuccess }) {
+function AuthPage({ screen, onSwitch, onLoginSuccess, onLoginFail }) {
   return screen === "login"
-    ? <Login onLogin={onSuccess} onGoSignup={() => onSwitch("signup")} />
-    : <Signup onSignUp={() => onSwitch("login")} onGoLogin={() => onSwitch("login")} />;
+    ? <Login
+        onLoginSuccess={onLoginSuccess}
+        onLoginFail={onLoginFail}
+        onGoSignup={() => onSwitch("signup")}
+      />
+    : <Signup
+        onSignupSuccess={() => onSwitch("login")}
+        onGoLogin={() => onSwitch("login")}
+      />;
 }
+
+// ── LOADING SCREEN ────────────────────────────────────────────────────────────
+function LoadingScreen() {
+  return (
+    <div style={{
+      minHeight: "100vh", display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      background: "linear-gradient(135deg, #fff0f5, #fce4ec)", gap: "16px",
+    }}>
+      <div style={{ fontSize: "52px", animation: "spin 1.5s ease-in-out infinite" }}>🌸</div>
+      <p style={{ color: "#CD2C58", fontWeight: "600", fontSize: "15px", fontFamily: "'Segoe UI', sans-serif" }}>
+        Loading HerSpace...
+      </p>
+      <style>{`
+        @keyframes spin {
+          0%, 100% { transform: rotate(-15deg) scale(1); }
+          50%       { transform: rotate(15deg) scale(1.1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [active, setActive]         = useState("home");
-  const [authScreen, setAuthScreen] = useState("signup");
+  const [active, setActive]           = useState("home");
+  const [authScreen, setAuthScreen]   = useState("signup");
+  const [authChecked, setAuthChecked] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  // ── CHANGE 2 ── Add zoneReportData state
+  const [zoneReportData, setZoneReportData] = useState(null);
+  const [doctorPatientData, setDoctorPatientData] = useState(null);
 
-  // ── LEARNMORE ROUTING ──
-  if (active === "learnmore") {
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/me", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const user = await res.json();
+          setCurrentUser(user);
+          setActive("dashboard");
+        } else {
+          setActive("home");
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
+        setActive("home");
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    checkSession();
+  }, []);
+
+  const handleLoginSuccess = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/me", {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const user = await res.json();
+        setCurrentUser(user);
+        setActive("dashboard");
+      }
+    } catch (err) {
+      console.error("Login redirect error:", err);
+      setActive("home");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:5000/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    setCurrentUser(null);
+    setActive("home");
+  };
+
+  if (!authChecked) return <LoadingScreen />;
+
+  // ── FULL PAGE ROUTES ───────────────────────────────────────────────────────
+  if (active === "learnmore")
     return <LearnMore onBack={() => setActive("home")} />;
+
+  // ── CHANGE 3 ── ZoneReport full-page route (before dashboard check)
+  if (active === "zoneReport") {
+    return (
+      <ZoneReport
+        result={zoneReportData}
+        onGoToDashboard={() => {
+          setZoneReportData(null);
+          setActive("dashboard");
+        }}
+        onGoToDoctorConnect={(trackerPayload) => {
+          setDoctorPatientData({
+            name: currentUser?.name || "Current User",
+            email: currentUser?.email || "",
+            tracker: trackerPayload || null,
+          });
+          setActive("doctor_connect");
+        }}
+      />
+    );
   }
 
+  if (active === "doctor_connect") {
+    return (
+      <DoctorConnect
+        onBack={() => setActive("dashboard")}
+        onOpenDoctorDashboard={() => setActive("doctor_dashboard")}
+      />
+    );
+  }
+
+  if (active === "doctor_dashboard") {
+    return (
+      <DoctorDashboard
+        fallbackPatient={doctorPatientData}
+        onBack={() => setActive("doctor_connect")}
+      />
+    );
+  }
+
+  // Dashboard handles AboutYou + RapidFire internally
+  // Pass onGoToZoneReport so RapidFire can bubble the result up
+  if (active === "dashboard") {
+    return (
+      <Dashboard
+        onLogout={handleLogout}
+        currentUser={currentUser}
+        onGoToZoneReport={(result) => {
+          setZoneReportData(result);
+          setActive("zoneReport");
+        }}
+      />
+    );
+  }
+
+  // ── NAV PAGES (home, features, etc.) ─────────────────────────────────────
   const NAV_TABS = [
     { id: "home",       label: "Home",         component: <HomePage onLearnMore={() => setActive("learnmore")} /> },
     { id: "features",   label: "Features",     component: <FeaturesPage />   },
     { id: "howitworks", label: "How It Works", component: <HowItWorksPage /> },
     { id: "about",      label: "About",        component: <AboutPage />      },
     { id: "contact",    label: "Contact",      component: <ContactPage />    },
+    {
+      id: "auth", label: "Auth",
+      component: <AuthPage
+        screen={authScreen}
+        onSwitch={(s) => setAuthScreen(s)}
+        onLoginSuccess={handleLoginSuccess}
+        onLoginFail={() => setActive("home")}
+      />
+    },
   ];
 
-  const ALL_TABS = [
-    ...NAV_TABS,
-    { id: "auth",       label: "Auth",       component: <AuthPage screen={authScreen} onSwitch={(s) => setAuthScreen(s)} onSuccess={() => setActive("dashboard")} /> },
-    { id: "dashboard",  label: "Dashboard",  component: <Dashboard onLogout={() => setActive("home")} /> },
-  ];
-
-  const current = ALL_TABS.find((t) => t.id === active);
+  const current = NAV_TABS.find((t) => t.id === active) || NAV_TABS[0];
 
   return (
     <>
-      <style>{`
-        .nav-tab:hover { color: #ff4f8b !important; }
-      `}</style>
-      <div style={active === "dashboard" ? {} : S.root}>
-        {active !== "dashboard" && <div style={S.overlay} />}
+      <style>{`.nav-tab:hover { color: #ff4f8b !important; }`}</style>
+      <div style={S.root}>
+        <div style={S.overlay} />
         {active === "home" && <FloatingPetals />}
 
-        {active !== "dashboard" && (
-          <header style={S.header}>
-            <div style={S.headerInner}>
-              <div style={S.logoBox}>
-                <img src={logo} alt="HerSpace" style={S.logoImg} />
-              </div>
-              <nav style={S.tabBar}>
-                {NAV_TABS.map((tab) => (
-                  <button key={tab.id} className="nav-tab"
-                    onClick={() => setActive(tab.id)}
-                    style={{ ...S.tab, ...(active === tab.id ? S.tabActive : {}) }}>
-                    {tab.label}
-                    {active === tab.id && <div style={S.tabUnderline} />}
-                  </button>
-                ))}
-              </nav>
-              <div style={S.authBtns}>
-                <button style={S.loginBtn} onClick={() => { setAuthScreen("login"); setActive("auth"); }}>
-                  Login
-                </button>
-                <button style={S.signupBtn} onClick={() => { setAuthScreen("signup"); setActive("auth"); }}>
-                  Sign Up
-                </button>
-              </div>
+        <header style={S.header}>
+          <div style={S.headerInner}>
+            <div style={S.logoBox}>
+              <img src={logo} alt="HerSpace" style={S.logoImg} />
             </div>
-          </header>
-        )}
+            <nav style={S.tabBar}>
+              {NAV_TABS.filter(t => t.id !== "auth").map((tab) => (
+                <button key={tab.id} className="nav-tab"
+                  onClick={() => setActive(tab.id)}
+                  style={{ ...S.tab, ...(active === tab.id ? S.tabActive : {}) }}>
+                  {tab.label}
+                  {active === tab.id && <div style={S.tabUnderline} />}
+                </button>
+              ))}
+            </nav>
+            <div style={S.authBtns}>
+              <button style={S.loginBtn} onClick={() => { setAuthScreen("login"); setActive("auth"); }}>
+                Login
+              </button>
+              <button style={S.signupBtn} onClick={() => { setAuthScreen("signup"); setActive("auth"); }}>
+                Sign Up
+              </button>
+            </div>
+          </div>
+        </header>
 
-        <main style={active === "dashboard" ? {} : S.main}>{current.component}</main>
+        <main style={S.main}>{current.component}</main>
 
-        {active !== "dashboard" && (
-          <footer style={S.footer}>
-            © 2026 HerSpace · "Your mental health is a priority." 🌸
-          </footer>
-        )}
+        <footer style={S.footer}>
+          © 2026 HerSpace · "Your mental health is a priority." 🌸
+        </footer>
       </div>
     </>
   );
@@ -312,19 +453,15 @@ export default function App() {
 // ── STYLES ────────────────────────────────────────────────────────────────────
 const S = {
   root: {
-    fontFamily: "'Segoe UI', sans-serif",
-    minHeight: "100vh",
-    backgroundImage: `url(${bg})`,
-    backgroundSize: "cover", backgroundPosition: "center",
-    backgroundAttachment: "fixed",
-    display: "flex", flexDirection: "column",
-    position: "relative",
+    fontFamily: "'Segoe UI', sans-serif", minHeight: "100vh",
+    backgroundImage: `url(${bg})`, backgroundSize: "cover",
+    backgroundPosition: "center", backgroundAttachment: "fixed",
+    display: "flex", flexDirection: "column", position: "relative",
   },
   overlay: {
     position: "fixed", inset: 0,
     background: "rgba(255,220,220,0.55)",
-    backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
-    zIndex: 0,
+    backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 0,
   },
   header: {
     background: "rgba(255,255,255,0.75)",
@@ -332,10 +469,7 @@ const S = {
     borderBottom: "1px solid rgba(205,44,88,0.15)",
     position: "sticky", top: 0, zIndex: 100,
   },
-  headerInner: {
-    display: "flex", alignItems: "center",
-    padding: "0 32px", gap: "8px", height: "64px",
-  },
+  headerInner: { display: "flex", alignItems: "center", padding: "0 32px", gap: "8px", height: "64px" },
   logoBox: { marginRight: "16px", display: "flex", alignItems: "center" },
   logoImg: { height: "48px", objectFit: "contain" },
   tabBar: { display: "flex", alignItems: "center", flex: 1, gap: "2px", height: "100%" },
@@ -355,8 +489,7 @@ const S = {
   authBtns: { display: "flex", gap: "10px", marginLeft: "auto" },
   loginBtn: {
     padding: "8px 20px", border: "2px solid #CD2C58", borderRadius: "25px",
-    background: "transparent", color: "#CD2C58",
-    fontWeight: "600", cursor: "pointer", fontSize: "13px",
+    background: "transparent", color: "#CD2C58", fontWeight: "600", cursor: "pointer", fontSize: "13px",
   },
   signupBtn: {
     padding: "8px 20px", border: "none", borderRadius: "25px",
@@ -366,32 +499,28 @@ const S = {
   },
   main: { flex: 1, padding: "40px 20px", position: "relative", zIndex: 2 },
   footer: {
-    textAlign: "center", padding: "16px", fontSize: "12px",
-    color: "#CD2C58", borderTop: "1px solid rgba(205,44,88,0.15)",
+    textAlign: "center", padding: "16px", fontSize: "12px", color: "#CD2C58",
+    borderTop: "1px solid rgba(205,44,88,0.15)",
     background: "rgba(255,255,255,0.4)", backdropFilter: "blur(10px)",
     position: "relative", zIndex: 2,
   },
   hero: { display: "flex", justifyContent: "center", paddingTop: "40px", paddingInline: "20px" },
   heroRow: {
-    display: "flex", flexWrap: "wrap",
-    alignItems: "center", justifyContent: "space-between",
-    gap: "32px", maxWidth: "1100px", width: "100%",
+    display: "flex", flexWrap: "wrap", alignItems: "center",
+    justifyContent: "space-between", gap: "32px", maxWidth: "1100px", width: "100%",
   },
   heroLeft: { flex: "1 1 340px", display: "flex", flexDirection: "column", gap: "18px" },
   heroRight: { flex: "1 1 260px", display: "flex", justifyContent: "center" },
   mascotCard: {
     display: "flex", alignItems: "center", gap: "12px",
-    background: "rgba(255,255,255,0.5)",
-    backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-    border: "1px solid rgba(255,255,255,0.8)",
-    borderRadius: "20px", padding: "14px 24px",
+    background: "rgba(255,255,255,0.5)", backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255,255,255,0.8)", borderRadius: "20px", padding: "14px 24px",
     boxShadow: "0 8px 32px rgba(205,44,88,0.15)",
   },
   stickerCircle: {
     width: "52px", height: "52px", borderRadius: "50%",
     background: "linear-gradient(135deg, #fce4ec, #f8bbd0)",
-    overflow: "hidden", display: "flex",
-    alignItems: "center", justifyContent: "center", flexShrink: 0,
+    overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
   stickerImg: { width: "100%", height: "100%", objectFit: "cover" },
   mascotText: { textAlign: "left" },
@@ -414,8 +543,7 @@ const S = {
   },
   heroIllustrationCard: {
     background: "rgba(255,255,255,0.6)", backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)", borderRadius: "30px", padding: "24px",
-    boxShadow: "0 12px 40px rgba(205,44,88,0.2)",
+    borderRadius: "30px", padding: "24px", boxShadow: "0 12px 40px rgba(205,44,88,0.2)",
   },
   heroIllustrationCircle: {
     width: "260px", height: "260px", borderRadius: "32px",
@@ -430,15 +558,12 @@ const S = {
   flipWrapper: { width: "220px", height: "200px", perspective: "1000px", cursor: "pointer" },
   flipInner: {
     position: "relative", width: "100%", height: "100%",
-    transformStyle: "preserve-3d",
-    transition: "transform 0.6s cubic-bezier(0.4,0.2,0.2,1)",
+    transformStyle: "preserve-3d", transition: "transform 0.6s cubic-bezier(0.4,0.2,0.2,1)",
   },
   flipFront: {
-    position: "absolute", inset: 0,
-    background: "rgba(255,220,220,0.55)",
-    backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-    border: "1px solid rgba(255,255,255,0.75)", borderRadius: "18px",
-    padding: "20px 16px", textAlign: "center",
+    position: "absolute", inset: 0, background: "rgba(255,220,220,0.55)",
+    backdropFilter: "blur(14px)", border: "1px solid rgba(255,255,255,0.75)",
+    borderRadius: "18px", padding: "20px 16px", textAlign: "center",
     backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden",
     boxShadow: "0 8px 32px rgba(205,44,88,0.12)",
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -460,26 +585,22 @@ const S = {
   stepArrow: { fontSize: "22px", color: "#CD2C58", fontWeight: "bold", flexShrink: 0 },
   glassCard: {
     background: "rgba(255,255,255,0.35)", backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.7)",
-    borderRadius: "24px", padding: "36px", textAlign: "left",
+    border: "1px solid rgba(255,255,255,0.7)", borderRadius: "24px", padding: "36px", textAlign: "left",
     boxShadow: "0 8px 32px rgba(205,44,88,0.1)",
   },
   aboutText: { fontSize: "15px", color: "#333", lineHeight: 1.7 },
   stats: { display: "flex", gap: "16px", marginTop: "28px", justifyContent: "center", flexWrap: "wrap" },
   statGlass: {
     background: "rgba(255,255,255,0.4)", backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.6)",
-    borderRadius: "16px", padding: "16px 28px", textAlign: "center",
+    border: "1px solid rgba(255,255,255,0.6)", borderRadius: "16px", padding: "16px 28px", textAlign: "center",
     boxShadow: "0 4px 20px rgba(205,44,88,0.1)",
   },
   statGlassNum: { fontSize: "24px", fontWeight: "900", color: "#CD2C58" },
   statGlassLabel: { fontSize: "12px", color: "#666", marginTop: "4px" },
   label: { display: "block", fontSize: "13px", fontWeight: "600", color: "#333", marginBottom: "6px" },
   input: {
-    width: "100%", padding: "11px 14px",
-    border: "1.5px solid rgba(205,44,88,0.2)", borderRadius: "10px",
-    fontSize: "14px", outline: "none",
-    background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)",
-    boxSizing: "border-box",
+    width: "100%", padding: "11px 14px", border: "1.5px solid rgba(205,44,88,0.2)",
+    borderRadius: "10px", fontSize: "14px", outline: "none",
+    background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)", boxSizing: "border-box",
   },
 };
