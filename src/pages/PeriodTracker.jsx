@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import periodBg   from "../assets/period-bg.png";
 import periodGirl from "../assets/period-girl.png";
 import { toast, ToastContainer } from "react-toastify";
@@ -64,64 +64,225 @@ const ACTION_RATING_OPTS = [
   { label:"Skipped", emoji:"❌", sub:"Couldn't follow it",        rating:"Skipped" },
 ];
 
-// ── Weekly mini check-in questions ───────────────────────────────────────────
-const WEEKLY_QUESTIONS = [
-  {
-    id: "regularity",
-    q: "How regular was your cycle this week?",
-    hint: "🌙 Any shifts in your cycle pattern?",
-    opts: [
-      { label:"Very regular",       emoji:"⏰", sub:"On track as expected" },
-      { label:"Slightly irregular", emoji:"🌀", sub:"A small shift noticed" },
-      { label:"More irregular",     emoji:"🎲", sub:"Noticeable change" },
-      { label:"Very irregular",     emoji:"⚠️", sub:"Hard to predict this week" },
-    ],
-  },
-  {
-    id: "acne",
-    q: "Any new acne or skin changes this week?",
-    hint: "✨ Jaw/chin breakouts are hormonal signals",
-    opts: [
-      { label:"Clear skin",        emoji:"😊", sub:"No changes" },
-      { label:"Minor breakouts",   emoji:"🤔", sub:"A pimple or two" },
-      { label:"Hormonal acne",     emoji:"😟", sub:"Jaw or chin area" },
-      { label:"Worse than usual",  emoji:"😰", sub:"More than normal" },
-    ],
-  },
-  {
-    id: "energy",
-    q: "How were your energy levels this week?",
-    hint: "💛 Energy tracks closely with your cycle phase",
-    opts: [
-      { label:"High energy",   emoji:"⚡", sub:"Feeling great" },
-      { label:"Good",          emoji:"🌟", sub:"Normal levels" },
-      { label:"Low energy",    emoji:"😴", sub:"Tired more than usual" },
-      { label:"Very fatigued", emoji:"😵", sub:"Exhausted all week" },
-    ],
-  },
-  {
-    id: "symptoms",
-    q: "Any unusual symptoms this week?",
-    hint: "🔍 Spotting, pelvic pain, or new discomforts",
-    opts: [
-      { label:"No symptoms",       emoji:"✅", sub:"All normal" },
-      { label:"Mild spotting",     emoji:"🩸", sub:"Light mid-cycle bleeding" },
-      { label:"Pelvic discomfort", emoji:"😣", sub:"Pain or cramping" },
-      { label:"Multiple symptoms", emoji:"⚠️", sub:"More than one issue" },
-    ],
-  },
-  {
-    id: "weight",
-    q: "Any weight or bloating changes?",
-    hint: "⚖️ Bloating often peaks in luteal phase",
-    opts: [
-      { label:"Stable",           emoji:"✅", sub:"No changes" },
-      { label:"Slight bloating",  emoji:"🤔", sub:"Mild puffiness" },
-      { label:"More bloating",    emoji:"😟", sub:"Noticeable this week" },
-      { label:"Weight increased", emoji:"⚠️", sub:"Unexplained gain" },
-    ],
-  },
-];
+// ── Weekly mini check-in (same answer ids for API — copy tuned per age band) ─
+const WEEKLY_BASE = {
+  regularity: (q, h, o) => ({ id: "regularity", q, hint: h, opts: o }),
+  acne:       (q, h, o) => ({ id: "acne",       q, hint: h, opts: o }),
+  energy:     (q, h, o) => ({ id: "energy",     q, hint: h, opts: o }),
+  symptoms:   (q, h, o) => ({ id: "symptoms",   q, hint: h, opts: o }),
+  weight:     (q, h, o) => ({ id: "weight",     q, hint: h, opts: o }),
+};
+
+const WEEKLY_QUESTIONS_BY_AGE = {
+  teen: [
+    WEEKLY_BASE.regularity(
+      "Was your period on time this week (or what you expected)? 📅",
+      "🌙 It’s normal for teen cycles to shift a little while hormones settle",
+      [
+        { label:"Right on time",      emoji:"⏰", sub:"Predictable" },
+        { label:"A few days early/late", emoji:"🌀", sub:"Small shift" },
+        { label:"Pretty irregular",   emoji:"🎲", sub:"Hard to guess" },
+        { label:"Skipped / unsure",   emoji:"⚠️", sub:"Let an adult know if worried" },
+      ]
+    ),
+    WEEKLY_BASE.acne(
+      "Any new pimples — especially on chin or forehead? ✨",
+      "✨ Hormones can make skin change week to week",
+      [
+        { label:"Clear skin",       emoji:"😊", sub:"No new spots" },
+        { label:"A few spots",      emoji:"🤔", sub:"Nothing major" },
+        { label:"More breakouts",   emoji:"😟", sub:"Jaw or forehead" },
+        { label:"Really bad flare", emoji:"😰", sub:"Painful or cystic" },
+      ]
+    ),
+    WEEKLY_BASE.energy(
+      "How was your energy for school, sports, and friends? ⚡",
+      "💛 Sleep and stress affect how energetic you feel",
+      [
+        { label:"Lots of energy", emoji:"⚡", sub:"Felt great" },
+        { label:"Pretty okay",    emoji:"🌟", sub:"Mostly fine" },
+        { label:"Tired a lot",    emoji:"😴", sub:"Dragging most days" },
+        { label:"Exhausted",      emoji:"😵", sub:"Hard to get through the day" },
+      ]
+    ),
+    WEEKLY_BASE.symptoms(
+      "Anything uncomfortable — bad cramps, dizziness, or heavy bleeding? 🩺",
+      "🔍 Heavy pain or very heavy bleeding is worth telling a trusted adult",
+      [
+        { label:"No big issues",      emoji:"✅", sub:"Felt normal" },
+        { label:"Mild cramps",        emoji:"🤔", sub:"Manageable" },
+        { label:"Bad cramps / pain",  emoji:"😣", sub:"Needed rest or meds" },
+        { label:"Worried symptoms",   emoji:"⚠️", sub:"New or severe" },
+      ]
+    ),
+    WEEKLY_BASE.weight(
+      "Any bloating or clothes feeling tighter this week? 👖",
+      "⚖️ Bloating can show up before a period — it’s common",
+      [
+        { label:"No change",         emoji:"✅", sub:"Felt the same" },
+        { label:"A little bloated",  emoji:"🤔", sub:"Mild" },
+        { label:"Quite bloated",     emoji:"😟", sub:"Noticeable" },
+        { label:"Sudden big change", emoji:"⚠️", sub:"Unusual for you" },
+      ]
+    ),
+  ],
+  young: [
+    WEEKLY_BASE.regularity(
+      "How regular was your cycle this week?",
+      "🌙 Any shifts in your cycle pattern?",
+      [
+        { label:"Very regular",       emoji:"⏰", sub:"On track as expected" },
+        { label:"Slightly irregular", emoji:"🌀", sub:"A small shift noticed" },
+        { label:"More irregular",     emoji:"🎲", sub:"Noticeable change" },
+        { label:"Very irregular",     emoji:"⚠️", sub:"Hard to predict this week" },
+      ]
+    ),
+    WEEKLY_BASE.acne(
+      "Any new acne or skin changes this week?",
+      "✨ Jaw/chin breakouts are hormonal signals",
+      [
+        { label:"Clear skin",        emoji:"😊", sub:"No changes" },
+        { label:"Minor breakouts",   emoji:"🤔", sub:"A pimple or two" },
+        { label:"Hormonal acne",     emoji:"😟", sub:"Jaw or chin area" },
+        { label:"Worse than usual",  emoji:"😰", sub:"More than normal" },
+      ]
+    ),
+    WEEKLY_BASE.energy(
+      "How were your energy levels this week?",
+      "💛 Energy tracks closely with your cycle phase",
+      [
+        { label:"High energy",   emoji:"⚡", sub:"Feeling great" },
+        { label:"Good",          emoji:"🌟", sub:"Normal levels" },
+        { label:"Low energy",    emoji:"😴", sub:"Tired more than usual" },
+        { label:"Very fatigued", emoji:"😵", sub:"Exhausted all week" },
+      ]
+    ),
+    WEEKLY_BASE.symptoms(
+      "Any unusual symptoms this week?",
+      "🔍 Spotting, pelvic pain, or new discomforts",
+      [
+        { label:"No symptoms",       emoji:"✅", sub:"All normal" },
+        { label:"Mild spotting",     emoji:"🩸", sub:"Light mid-cycle bleeding" },
+        { label:"Pelvic discomfort", emoji:"😣", sub:"Pain or cramping" },
+        { label:"Multiple symptoms", emoji:"⚠️", sub:"More than one issue" },
+      ]
+    ),
+    WEEKLY_BASE.weight(
+      "Any weight or bloating changes?",
+      "⚖️ Bloating often peaks in luteal phase",
+      [
+        { label:"Stable",           emoji:"✅", sub:"No changes" },
+        { label:"Slight bloating",  emoji:"🤔", sub:"Mild puffiness" },
+        { label:"More bloating",    emoji:"😟", sub:"Noticeable this week" },
+        { label:"Weight increased", emoji:"⚠️", sub:"Unexplained gain" },
+      ]
+    ),
+  ],
+  adult: [
+    WEEKLY_BASE.regularity(
+      "How predictable was your cycle pattern this week?",
+      "🌙 PCOD can make timing drift — note any change",
+      [
+        { label:"Very regular",       emoji:"⏰", sub:"As expected" },
+        { label:"Slightly off",       emoji:"🌀", sub:"A few days variance" },
+        { label:"Clearly irregular",  emoji:"🎲", sub:"Hard to plan around" },
+        { label:"Very unpredictable",   emoji:"⚠️", sub:"Major shift" },
+      ]
+    ),
+    WEEKLY_BASE.acne(
+      "Skin or jawline acne — any flare-ups this week?",
+      "✨ Androgen-driven acne often hits jaw/chin mid-cycle",
+      [
+        { label:"Stable / clear",    emoji:"😊", sub:"No flare" },
+        { label:"Minor flare",       emoji:"🤔", sub:"A few spots" },
+        { label:"Hormonal breakout", emoji:"😟", sub:"Jawline pattern" },
+        { label:"Severe flare",      emoji:"😰", sub:"Painful or widespread" },
+      ]
+    ),
+    WEEKLY_BASE.energy(
+      "Energy and focus at work/home — how did you feel?",
+      "💛 Crashy afternoons can track with progesterone shifts",
+      [
+        { label:"Strong & steady", emoji:"⚡", sub:"Good stamina" },
+        { label:"Mostly fine",     emoji:"🌟", sub:"Normal ups/downs" },
+        { label:"Often drained",   emoji:"😴", sub:"Hard to focus" },
+        { label:"Burnt out",       emoji:"😵", sub:"Depleted most days" },
+      ]
+    ),
+    WEEKLY_BASE.symptoms(
+      "Spotting, cramps, migraines, or pelvic pain this week?",
+      "🔍 New or worsening symptoms deserve attention",
+      [
+        { label:"None",              emoji:"✅", sub:"Quiet week" },
+        { label:"Mild / manageable", emoji:"🤔", sub:"Usual level" },
+        { label:"Moderate impact",   emoji:"😣", sub:"Affected routine" },
+        { label:"Severe / new",      emoji:"⚠️", sub:"Consider clinical review" },
+      ]
+    ),
+    WEEKLY_BASE.weight(
+      "Belly bloating or weight shift — especially before your period?",
+      "⚖️ Insulin + hormones can drive midsection water retention",
+      [
+        { label:"Stable",           emoji:"✅", sub:"No shift" },
+        { label:"Mild bloating",    emoji:"🤔", sub:"Clothes a bit tight" },
+        { label:"Clear bloating",   emoji:"😟", sub:"Visible change" },
+        { label:"Unexplained gain", emoji:"⚠️", sub:"Despite habits" },
+      ]
+    ),
+  ],
+  hormonal: [
+    WEEKLY_BASE.regularity(
+      "Bleeding pattern this week — period, spotting, or unpredictable?",
+      "🌸 Perimenopause cycles often shorten, lengthen, or skip",
+      [
+        { label:"Fairly regular",      emoji:"⏰", sub:"Recognisable pattern" },
+        { label:"Heavier/lighter than usual", emoji:"🌀", sub:"Flow changed" },
+        { label:"Spotting / irregular", emoji:"🎲", sub:"Hard to call" },
+        { label:"Skipped or very long gap", emoji:"⚠️", sub:"Discuss with clinician" },
+      ]
+    ),
+    WEEKLY_BASE.acne(
+      "Skin dryness, sensitivity, or hormonal breakouts this week?",
+      "✨ Estrogen shifts can flip skin from oily to dry",
+      [
+        { label:"Mostly stable",     emoji:"😊", sub:"No big change" },
+        { label:"Drier or dull",     emoji:"🤔", sub:"Texture shift" },
+        { label:"Breakouts + dryness", emoji:"😟", sub:"Mixed pattern" },
+        { label:"Notable flare",     emoji:"😰", sub:"Painful or inflamed" },
+      ]
+    ),
+    WEEKLY_BASE.energy(
+      "Energy, sleep quality, or night sweats — how was the week?",
+      "🌛 Night waking and sweats are common in hormonal transition",
+      [
+        { label:"Rested overall",     emoji:"⚡", sub:"Sleep helped" },
+        { label:"Some rough nights",    emoji:"🌟", sub:"On/off" },
+        { label:"Poor sleep / sweats", emoji:"😴", sub:"Often disrupted" },
+        { label:"Exhausted daily",    emoji:"😵", sub:"Little recovery" },
+      ]
+    ),
+    WEEKLY_BASE.symptoms(
+      "Hot flashes, mood shifts, joint aches, or new pelvic symptoms?",
+      "🔍 Track anything new — it helps your care team",
+      [
+        { label:"Minimal",           emoji:"✅", sub:"Quiet week" },
+        { label:"Mild flashes/mood", emoji:"🤔", sub:"Noticeable but ok" },
+        { label:"Frequent symptoms", emoji:"😣", sub:"Affecting day" },
+        { label:"Severe / worrying", emoji:"⚠️", sub:"Seek guidance" },
+      ]
+    ),
+    WEEKLY_BASE.weight(
+      "Weight or waistline changes — especially around the middle?",
+      "⚖️ Redistribution is common as estrogen patterns change",
+      [
+        { label:"Stable",            emoji:"✅", sub:"No change" },
+        { label:"Mild shift",        emoji:"🤔", sub:"Slight" },
+        { label:"Belly/waist up",    emoji:"😟", sub:"Despite routine" },
+        { label:"Rapid change",      emoji:"⚠️", sub:"Worth checking in" },
+      ]
+    ),
+  ],
+};
 
 const AGE_QS = {
   teen: {
@@ -424,6 +585,10 @@ export default function PeriodTracker({ userData, onBack }) {
 
   const aq        = AGE_QS[ageKey] || AGE_QS.young;
   const STEP_META = buildStepMeta(ageKey);
+  const weeklyQuestionList = useMemo(
+    () => WEEKLY_QUESTIONS_BY_AGE[ageKey] || WEEKLY_QUESTIONS_BY_AGE.young,
+    [ageKey]
+  );
   const formatDateInput = (d) => {
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -615,7 +780,7 @@ export default function PeriodTracker({ userData, onBack }) {
     setWeeklyAnimDir("next");
     setWeeklyAnimKey(k => k+1);
     setTimeout(() => {
-      if (weeklyQStep < WEEKLY_QUESTIONS.length - 1) {
+      if (weeklyQStep < weeklyQuestionList.length - 1) {
         setWeeklyQStep(q => q + 1);
       } else {
         // All 5 answered — submit
@@ -789,7 +954,7 @@ export default function PeriodTracker({ userData, onBack }) {
                 🔁 WEEKLY CHECK-IN · {weeklyCheckinInfo?.daysSinceWeekly ?? 7} DAYS SINCE LAST
               </div>
               <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:"24px",fontWeight:"900",color:"#3d1a00",margin:"0 0 6px"}}>
-                {weeklyStep===1 ? "How did your week go? 💛" : weeklyStep===3 ? "Generating your plan… 🌸" : `Question ${weeklyQStep+1} of 5`}
+                {weeklyStep===1 ? "How did your week go? 💛" : weeklyStep===3 ? "Generating your plan… 🌸" : `Question ${weeklyQStep+1} of ${weeklyQuestionList.length}`}
               </h2>
               <p style={{fontSize:"13px",color:"rgba(0,0,0,0.45)",margin:0,fontWeight:"500"}}>
                 {weeklyStep===1 ? "Rate how you followed your last action plan" : weeklyStep===3 ? "AI is personalising your weekly health plan" : "Quick health check — 5 simple questions"}
@@ -799,7 +964,7 @@ export default function PeriodTracker({ userData, onBack }) {
             {/* Progress dots */}
             {weeklyStep===2 && (
               <div style={{display:"flex",gap:"6px",justifyContent:"center",marginBottom:"20px"}}>
-                {WEEKLY_QUESTIONS.map((_,i)=>(
+                {weeklyQuestionList.map((_,i)=>(
                   <div key={i} style={{width: i===weeklyQStep?"24px":"8px",height:"8px",borderRadius:"4px",background:i<weeklyQStep?"linear-gradient(90deg,#ffd700,#f5a623)":i===weeklyQStep?"linear-gradient(90deg,#ffd700,#f5a623)":"rgba(0,0,0,0.12)",transition:"all .3s ease",boxShadow:i===weeklyQStep?"0 0 8px rgba(255,200,30,.6)":"none"}}/>
                 ))}
               </div>
@@ -860,7 +1025,7 @@ export default function PeriodTracker({ userData, onBack }) {
             {weeklyStep===2 && (
               <div key={weeklyAnimKey} className={weeklyAnimDir==="next"?"slide-next":"slide-prev"}>
                 {(() => {
-                  const q = WEEKLY_QUESTIONS[weeklyQStep];
+                  const q = weeklyQuestionList[weeklyQStep];
                   return (
                     <>
                       <div style={{display:"flex",alignItems:"flex-start",gap:"10px",marginBottom:"14px"}}>
@@ -1082,6 +1247,7 @@ export default function PeriodTracker({ userData, onBack }) {
           onUpdate={()=>{ setStep(1); setView("questions"); }}
           onWeeklyCheckin={()=>{ setWeeklyStep(1); setWeeklyActionRating(""); setWeeklyAnswers({regularity:"",acne:"",energy:"",symptoms:"",weight:""}); setWeeklyQStep(0); setView("weekly"); }}
           ageKey={ageKey}
+          onRefreshCycleData={loadDashboard}
         />
       )}
     </div>
@@ -1101,11 +1267,26 @@ const DASH_SECTIONS = [
   { id:"comparison", emoji:"📊", label:"Cycle Progress"  },
 ];
 
-function CycleDashboard({ data, onBack, onUpdate, onWeeklyCheckin, ageKey }) {
+function CycleDashboard({ data, onBack, onUpdate, onWeeklyCheckin, ageKey, onRefreshCycleData }) {
   const [active, setActive] = useState("today");
   const pc = PHASE_CONFIG[data.phase] || PHASE_CONFIG.Luteal;
   const PHASES = ["Menstrual","Follicular","Ovulation","Luteal"];
   const phaseIdx = PHASES.indexOf(data.phase);
+
+  // Refetch cycle math when user returns to the tab or refocuses — phase/day advance with the calendar
+  useEffect(() => {
+    if (typeof onRefreshCycleData !== "function") return;
+    const run = () => onRefreshCycleData();
+    const onVis = () => {
+      if (document.visibilityState === "visible") run();
+    };
+    window.addEventListener("focus", run);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("focus", run);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [onRefreshCycleData]);
 
   const [aiRecs,    setAiRecs]    = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -1243,6 +1424,11 @@ function CycleDashboard({ data, onBack, onUpdate, onWeeklyCheckin, ageKey }) {
         {active==="today" && (
           <div className="fade-up">
             <SectionTitle emoji="🌙" title="My Cycle Today" sub="Where you are right now in your cycle"/>
+            {ageKey === "hormonal" && (
+              <p style={{ fontSize:"12px", color:"rgba(90,48,0,0.75)", lineHeight:1.65, margin:"0 0 14px", fontWeight:"600", fontFamily:"'Nunito',sans-serif", maxWidth:"640px" }}>
+                In perimenopause, bleeding and timing can vary. The phase below is estimated from your <strong>last logged period</strong> and typical length — update your monthly check-in when your period starts for best accuracy. 🌸
+              </p>
+            )}
             <div style={{background:pc.grad,borderRadius:"24px",padding:"28px",marginBottom:"18px",position:"relative",overflow:"hidden",boxShadow:`0 12px 40px ${pc.light}`}}>
               <div style={{position:"absolute",top:"-20px",right:"-20px",width:"120px",height:"120px",background:"rgba(255,255,255,0.15)",borderRadius:"50%",filter:"blur(30px)"}}/>
               <div style={{display:"flex",alignItems:"center",gap:"20px",marginBottom:"18px",position:"relative"}}>

@@ -138,53 +138,53 @@ function buildCareFallback(zoneKey, count) {
 }
 
 const ZONE_CONFIG = {
-  healthy: {
-    label:"Healthy", emoji:"🟢", color:"#1a6b4a", lightColor:"#2d9e6f",
-    glowColor:"rgba(29,158,117,0.4)", border:"rgba(29,158,117,0.22)",
-    grad:"linear-gradient(135deg,#1D9E75,#0F6E56)",
-    gradSoft:"linear-gradient(135deg,rgba(29,158,117,0.15),rgba(15,110,86,0.08))",
-    bgImage:healthyImg,
-    overlay:"linear-gradient(160deg,rgba(220,245,235,0.78) 0%,rgba(200,240,220,0.72) 50%,rgba(210,235,230,0.75) 100%)",
-    subtitle:"Your hormonal health looks balanced and strong.\nKeep doing what you're doing — your body is thriving.",
-    explanation:"Your responses indicate no significant PCOD indicators at this time — your hormonal health appears balanced and stable. Your cycle regularity, skin health, and energy levels all point to a well-functioning endocrine system. This is a great foundation to maintain through consistent sleep, a balanced diet, and regular movement.",
-    subtext:"Keep maintaining your current lifestyle — prevention is the best medicine.",
-    badge:"Low Risk", badgeColor:"rgba(29,158,117,0.12)",
-  },
   mild: {
-    label:"Mild Risk", emoji:"🟡", color:"#7a5500", lightColor:"#c07a10",
-    glowColor:"rgba(186,117,23,0.4)", border:"rgba(186,117,23,0.22)",
-    grad:"linear-gradient(135deg,#BA7517,#EF9F27)",
-    gradSoft:"linear-gradient(135deg,rgba(186,117,23,0.15),rgba(239,159,39,0.08))",
+    label:"Build Consistency", emoji:"💎", color:"#4a7fc1", lightColor:"#7ab3e8",
+    glowColor:"rgba(74,127,193,0.4)", border:"rgba(74,127,193,0.22)",
+    grad:"linear-gradient(135deg,#4a7fc1,#7ab3e8)",
+    gradSoft:"linear-gradient(135deg,rgba(74,127,193,0.15),rgba(122,179,232,0.08))",
     bgImage:mildImg,
-    overlay:"linear-gradient(160deg,rgba(255,245,220,0.78) 0%,rgba(250,235,200,0.72) 50%,rgba(255,240,210,0.75) 100%)",
-    subtitle:"Early signals are present but manageable.\nSmall, consistent lifestyle improvements can make a big difference.",
-    explanation:"You show a few early signs that may be associated with PCOD, but they are mild and manageable at this stage. Early detection is powerful — catching these patterns now gives you the best opportunity to course-correct through lifestyle. With focused attention on nutrition, stress, and sleep, many women at this stage see significant improvement.",
-    subtext:"Lifestyle adjustments now can significantly reduce your risk over time.",
-    badge:"Early Stage", badgeColor:"rgba(186,117,23,0.12)",
+    overlay:"linear-gradient(160deg,rgba(220,235,250,0.78) 0%,rgba(200,225,245,0.72) 50%,rgba(210,230,250,0.75) 100%)",
+    subtitle:"Form habits that stick & thrive.\nYou're on the right track — build consistent habits around exercise, nutrition, and sleep.",
+    explanation:"You're on the right track! Build consistent habits around exercise, nutrition, and sleep to strengthen your hormonal health. Your current patterns show good foundation but could benefit from more structure and consistency.",
+    subtext:"Build consistent habits around exercise, nutrition, and sleep.",
+    badge:"Build Consistency", badgeColor:"rgba(74,127,193,0.12)",
   },
   moderate: {
-    label:"Moderate Risk", emoji:"🟠", color:"#8b2a0a", lightColor:"#c45020",
-    glowColor:"rgba(216,90,48,0.4)", border:"rgba(216,90,48,0.22)",
-    grad:"linear-gradient(135deg,#D85A30,#F0997B)",
-    gradSoft:"linear-gradient(135deg,rgba(216,90,48,0.15),rgba(240,153,123,0.08))",
+    label:"Stabilize & Recover", emoji:"🌸", color:"#b565a7", lightColor:"#d48fd0",
+    glowColor:"rgba(181,101,167,0.4)", border:"rgba(181,101,167,0.22)",
+    grad:"linear-gradient(135deg,#b565a7,#d48fd0)",
+    gradSoft:"linear-gradient(135deg,rgba(181,101,167,0.15),rgba(212,143,208,0.08))",
     bgImage:moderateImg,
-    overlay:"linear-gradient(160deg,rgba(255,235,225,0.78) 0%,rgba(250,220,210,0.72) 50%,rgba(255,225,215,0.75) 100%)",
-    subtitle:"Your body may be showing hormonal imbalance signals.\nLifestyle adjustments can significantly improve your cycle health.",
-    explanation:"You show multiple symptoms strongly associated with PCOD, and your hormonal patterns suggest that your body may be under some imbalance. This doesn't mean it's severe — but it does mean your body is signalling for support. A combination of lifestyle adjustments and professional evaluation will give you the clearest path forward.",
-    subtext:"This is not a diagnosis — but a professional consultation is recommended.",
-    badge:"Needs Attention", badgeColor:"rgba(216,90,48,0.12)",
+    overlay:"linear-gradient(160deg,rgba(245,220,240,0.78) 0%,rgba(235,200,230,0.72) 50%,rgba(240,210,235,0.75) 100%)",
+    subtitle:"Rest, heal & restore balance.\nYour body is asking for gentle care — prioritize deep rest, healing foods, and stress relief.",
+    explanation:"Your body is asking for gentle care. Prioritize deep rest, healing foods, and stress relief to restore hormonal balance. Your current patterns suggest you need more recovery and stabilization.",
+    subtext:"Prioritize deep rest, healing foods, and stress relief.",
+    badge:"Stabilize & Recover", badgeColor:"rgba(181,101,167,0.12)",
   },
   high: {
-    label:"High Risk", emoji:"🔴", color:"#6b1010", lightColor:"#a32d2d",
-    glowColor:"rgba(163,45,45,0.4)", border:"rgba(163,45,45,0.22)",
-    grad:"linear-gradient(135deg,#A32D2D,#E24B4A)",
-    gradSoft:"linear-gradient(135deg,rgba(163,45,45,0.15),rgba(226,75,74,0.08))",
+    label:"Support Sensitivity", emoji:"🌺", color:"#c45e8a", lightColor:"#e88ab8",
+    glowColor:"rgba(196,94,138,0.4)", border:"rgba(196,94,138,0.22)",
+    grad:"linear-gradient(135deg,#c45e8a,#e88ab8)",
+    gradSoft:"linear-gradient(135deg,rgba(196,94,138,0.15),rgba(232,138,184,0.08))",
     bgImage:highImg,
-    overlay:"linear-gradient(160deg,rgba(245,225,225,0.78) 0%,rgba(235,210,210,0.72) 50%,rgba(240,218,218,0.75) 100%)",
-    subtitle:"Your symptoms suggest a strong hormonal pattern that needs attention.\nProfessional guidance can help you take back control of your health.",
-    explanation:"Your responses indicate a high probability of PCOD-related hormonal imbalance, with several strong clinical indicators present across symptoms, lifestyle, and cycle patterns. This level of risk warrants prompt attention — not to cause alarm, but because early medical guidance leads to significantly better outcomes. You are not alone, and with the right support, this is very manageable.",
-    subtext:"We strongly recommend consulting a gynecologist as soon as possible.",
-    badge:"Seek Help", badgeColor:"rgba(163,45,45,0.12)",
+    overlay:"linear-gradient(160deg,rgba(250,220,235,0.78) 0%,rgba(245,200,225,0.72) 50%,rgba(248,210,230,0.75) 100%)",
+    subtitle:"Nurture with calm & care.\nYour system is sensitive right now — embrace calming routines, nourishing food, and mindful stress management.",
+    explanation:"Your system is sensitive right now. Embrace calming routines, nourishing food, and mindful stress management. Your patterns indicate you need extra support and sensitivity in your approach.",
+    subtext:"Embrace calming routines, nourishing food, and mindful stress management.",
+    badge:"Support Sensitivity", badgeColor:"rgba(196,94,138,0.12)",
+  },
+  healthy: {
+    label:"Maintain & Optimize", emoji:"✨", color:"#5b9e8a", lightColor:"#7dcbb8",
+    glowColor:"rgba(91,158,138,0.4)", border:"rgba(91,158,138,0.22)",
+    grad:"linear-gradient(135deg,#5b9e8a,#7dcbb8)",
+    gradSoft:"linear-gradient(135deg,rgba(91,158,138,0.15),rgba(125,203,184,0.08))",
+    bgImage:healthyImg,
+    overlay:"linear-gradient(160deg,rgba(220,245,235,0.78) 0%,rgba(200,240,220,0.72) 50%,rgba(210,235,230,0.75) 100%)",
+    subtitle:"You're thriving — keep going!\nMaintain your excellent habits and optimize further with advanced wellness practices and cycle syncing.",
+    explanation:"You're thriving! Maintain your excellent habits and optimize further with advanced wellness practices and cycle syncing. Your patterns show excellent hormonal health that you want to preserve.",
+    subtext:"Maintain your excellent habits and optimize further.",
+    badge:"Maintain & Optimize", badgeColor:"rgba(91,158,138,0.12)",
   },
 };
 
@@ -624,6 +624,40 @@ Return ONLY valid JSON:
         </div>
       )}
 
+      {/* Doctor recommendation for moderate/high risk */}
+      {(currZone === "moderate" || currZone === "high") && (
+        <div className="fade-up delay-3" style={{...gc,background:"linear-gradient(135deg,rgba(255,235,225,0.85),rgba(255,240,235,0.78))",border:`1.5px solid ${zc.border}`}}>
+          <div style={{position:"absolute",top:"-20px",right:"-20px",width:"100px",height:"100px",background:zc.glowColor,filter:"blur(30px)",borderRadius:"50%",opacity:0.35,pointerEvents:"none"}}/>
+          <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"18px",position:"relative"}}>
+            <div style={{width:"42px",height:"42px",borderRadius:"12px",background:zc.grad,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px",flexShrink:0,boxShadow:`0 4px 14px ${zc.glowColor}`}}>👩‍⚕️</div>
+            <div>
+              <div style={{fontSize:"11px",fontWeight:"900",color:zc.color,fontFamily:"'Nunito',sans-serif",letterSpacing:"2px",marginBottom:"2px"}}>RECOMMENDED SUPPORT</div>
+              <div style={{fontSize:"16px",fontWeight:"800",color:"#1a1a2e",fontFamily:"'Playfair Display',serif"}}>Connect with Dr. Lata Singh</div>
+            </div>
+          </div>
+          <div style={{background:"rgba(255,255,255,0.65)",border:`1px solid ${zc.border}`,borderRadius:"14px",padding:"16px 18px",marginBottom:"16px"}}>
+            <div style={{fontSize:"14px",fontWeight:"900",color:"#1a1a2e",marginBottom:"4px"}}>Dr. Lata Singh</div>
+            <div style={{fontSize:"12px",fontWeight:"700",color:zc.color,marginBottom:"8px"}}>MBBS, MD (Obstetrics & Gynecology)</div>
+            <div style={{fontSize:"12px",color:"rgba(0,0,0,0.65)",lineHeight:1.6,marginBottom:"10px"}}>Specialized in PCOD/PCOS management, hormonal wellness, and menstrual health with 12+ years of experience.</div>
+            <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"8px"}}>
+              <span style={{fontSize:"14px"}}>📞</span>
+              <span style={{fontSize:"13px",fontWeight:"700",color:"#1a1a2e"}}>{currZone === "moderate" ? "7045754607" : "7045754607"}</span>
+            </div>
+            <div style={{fontSize:"11px",color:"rgba(0,0,0,0.5)",fontWeight:"600"}}>Available for consultation</div>
+          </div>
+          <div style={{padding:"12px 16px",borderRadius:"12px",background:zc.gradSoft,border:`1px solid ${zc.border}`,marginBottom:"16px"}}>
+            <p style={{margin:0,fontSize:"13px",color:zc.color,fontWeight:"700",lineHeight:1.6}}>
+              {currZone === "moderate" 
+                ? "Professional guidance can help clarify your symptoms and create a personalized treatment plan." 
+                : "Given your assessment results, we strongly recommend scheduling a consultation to discuss your health and next steps."}
+            </p>
+          </div>
+          <button onClick={() => onGoToDoctorConnect && onGoToDoctorConnect(localTracker)} style={{width:"100%",padding:"12px 18px",border:"none",borderRadius:"12px",background:zc.grad,color:"#fff",fontWeight:"800",fontSize:"13px",cursor:"pointer",fontFamily:"'Nunito',sans-serif",boxShadow:`0 4px 12px ${zc.glowColor}`,transition:"all 0.2s ease"}}>
+            Connect with Dr. Lata Singh 👩‍⚕️
+          </button>
+        </div>
+      )}
+
       {/* Zone comparison */}
       {prevZone && (
         <div className="fade-up delay-2" style={gc}>
@@ -801,6 +835,11 @@ Return ONLY valid JSON:
             </div>
           </div>
         ))}
+      </div>
+      <div style={{marginTop:"18px",display:"flex",gap:"8px"}}>
+        <button style={{padding:"10px 18px",border:"none",borderRadius:"12px",background:zc.grad,color:"#fff",fontWeight:"800",fontSize:"12px",cursor:"pointer",fontFamily:"'Nunito',sans-serif",transition:"all 0.2s ease"}}>
+          View full Report 📋
+        </button>
       </div>
     </div>
   );

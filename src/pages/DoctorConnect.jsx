@@ -3,10 +3,10 @@ const BERRY_BG = "/@fs/C:/Users/BHARAT S SHAH/.cursor/projects/c-Users-BHARAT-S-
 
 export default function DoctorConnect({ onBack, onOpenDoctorDashboard }) {
   const doctor = {
-    name: "Dr. Meera Sharma",
+    name: "Lata Singh",
     qualification: "MBBS, MD (Obstetrics & Gynecology)",
     experience: "12+ years",
-    mobile: "+91 98765 43210",
+    mobile: "7045754607",
     speciality: "PCOS/PCOD, hormonal wellness, menstrual health",
     intro:
       "I support women with PCOD through evidence-based treatment, practical lifestyle guidance, and compassionate follow-up care.",

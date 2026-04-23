@@ -108,6 +108,211 @@ const SYMPTOM_QUESTIONS = [
   },
 ];
 
+// Same symptom ids as SYMPTOM_QUESTIONS (required for backend scoring) — wording by age band
+const SYMPTOM_QUESTIONS_TEEN = [
+  {
+    id: "irregularPeriods",
+    q: "Have your periods been a bit all over the place lately? 🌸",
+    reassurance: "Lots of teens have irregular cycles at first — we’re just learning your pattern.",
+    emoji: "🌸",
+    severityLabels: [
+      "Rarely — mostly fine",
+      "Sometimes — a bit unpredictable",
+      "Often — pretty irregular",
+      "Almost always — can’t predict at all",
+    ],
+  },
+  {
+    id: "acne",
+    q: "Has your skin been breaking out more — face or back? ✨",
+    reassurance: "Breakouts are super common in your teens. Honest answers help us help you.",
+    emoji: "✨",
+    severityLabels: [
+      "Rarely — a spot here and there",
+      "Sometimes — keeps coming back",
+      "Often — quite a few spots",
+      "Almost always — really bad or painful",
+    ],
+  },
+  {
+    id: "facialHair",
+    q: "Noticed more hair on your upper lip, chin, or body than your friends? 🌿",
+    reassurance: "This happens to many girls — it’s nothing to be embarrassed about.",
+    emoji: "🌿",
+    severityLabels: [
+      "Rarely — barely notice",
+      "Sometimes — a little more",
+      "Often — pretty noticeable",
+      "Almost always — a lot / spreads fast",
+    ],
+  },
+  {
+    id: "weightGain",
+    q: "Has your weight gone up even when you didn’t change how you eat much? ⚖️",
+    reassurance: "Hormones can change how your body holds weight — you’re not alone.",
+    emoji: "⚖️",
+    severityLabels: [
+      "Rarely — a little change",
+      "Sometimes — noticeable",
+      "Often — clear gain",
+      "Almost always — fast / hard to control",
+    ],
+  },
+  {
+    id: "hairThinning",
+    q: "Is more hair than usual coming out when you brush or wash? 💆‍♀️",
+    reassurance: "Noticing hair fall early really helps your doctor if you ever need one.",
+    emoji: "💆‍♀️",
+    severityLabels: [
+      "Rarely — a bit more",
+      "Sometimes — clearly more",
+      "Often — lots in the brush",
+      "Almost always — thin patches / obvious loss",
+    ],
+  },
+  {
+    id: "darkPatches",
+    q: "Any darker patches on your neck or underarms? 🌑",
+    reassurance: "This can be related to insulin — worth tracking, not judging.",
+    emoji: "🌑",
+    severityLabels: [
+      "Rarely — barely see it",
+      "Sometimes — a bit darker",
+      "Often — clear patches",
+      "Almost always — very dark / large areas",
+    ],
+  },
+  {
+    id: "moodSwings",
+    q: "Do you feel your mood swings more than your friends seem to? 🌊",
+    reassurance: "Mood and hormones are linked — your feelings are valid.",
+    emoji: "🌊",
+    severityLabels: [
+      "Rarely — mostly steady",
+      "Sometimes — up and down",
+      "Often — most days feel rough",
+      "Almost always — every day is a rollercoaster",
+    ],
+  },
+  {
+    id: "ovulationIssues",
+    q: "Do periods sometimes skip or feel very irregular? 🤍",
+    reassurance: "Irregular cycles are common in PCOD — tracking helps you stay ahead.",
+    emoji: "🤍",
+    severityLabels: [
+      "Rarely — mostly on track",
+      "Sometimes — skips or changes",
+      "Often — very unpredictable",
+      "Almost always — very long gaps or no period",
+    ],
+  },
+];
+
+const SYMPTOM_QUESTIONS_HORMONAL = [
+  {
+    id: "irregularPeriods",
+    q: "Have your cycles become shorter, longer, or harder to predict (perimenopause)? 🌸",
+    reassurance: "Cycle changes in your 40s+ are common — we’re mapping what’s normal for you.",
+    emoji: "🌸",
+    severityLabels: [
+      "Rarely — still fairly predictable",
+      "Sometimes — noticeable shifts",
+      "Often — clearly irregular",
+      "Almost always — very unpredictable / long gaps",
+    ],
+  },
+  {
+    id: "acne",
+    q: "Adult acne, oiliness, or sudden dryness — has your skin pattern changed? ✨",
+    reassurance: "Skin can change a lot as hormones shift — detail helps.",
+    emoji: "✨",
+    severityLabels: [
+      "Rarely — mostly stable",
+      "Sometimes — mild flare or dryness",
+      "Often — clear hormonal pattern",
+      "Almost always — severe or constant issues",
+    ],
+  },
+  {
+    id: "facialHair",
+    q: "New or faster facial / body hair growth than a few years ago? 🌿",
+    reassurance: "Androgen shifts can change hair growth — you’re not imagining it.",
+    emoji: "🌿",
+    severityLabels: [
+      "Rarely — little change",
+      "Sometimes — a bit more",
+      "Often — clearly more",
+      "Almost always — heavy / fast growth",
+    ],
+  },
+  {
+    id: "weightGain",
+    q: "Weight or waist gain even when habits haven’t changed much? ⚖️",
+    reassurance: "Midlife weight shifts are frustrating — hormones play a real role.",
+    emoji: "⚖️",
+    severityLabels: [
+      "Rarely — stable",
+      "Sometimes — mild gain",
+      "Often — clear gain around middle",
+      "Almost always — rapid / hard to budge",
+    ],
+  },
+  {
+    id: "hairThinning",
+    q: "Scalp thinning, widening part, or more fall than before? 💆‍♀️",
+    reassurance: "Hair density changes are a common hormonal signal — worth noting.",
+    emoji: "💆‍♀️",
+    severityLabels: [
+      "Rarely — minimal",
+      "Sometimes — more in brush / shower",
+      "Often — visible thinning",
+      "Almost always — obvious patches / loss",
+    ],
+  },
+  {
+    id: "darkPatches",
+    q: "Neck / underarm darkening or skin tags — new or worse lately? 🌑",
+    reassurance: "Insulin resistance can show on skin — tracking helps your clinician.",
+    emoji: "🌑",
+    severityLabels: [
+      "Rarely — none / faint",
+      "Sometimes — noticeable",
+      "Often — darker patches",
+      "Almost always — widespread / very dark",
+    ],
+  },
+  {
+    id: "moodSwings",
+    q: "Mood swings, anxiety, or brain fog — feeling more than you used to? 🌊",
+    reassurance: "Emotional symptoms in hormonal transition are very real.",
+    emoji: "🌊",
+    severityLabels: [
+      "Rarely — mostly okay",
+      "Sometimes — on/off rough patches",
+      "Often — most weeks are hard",
+      "Almost always — daily struggle",
+    ],
+  },
+  {
+    id: "ovulationIssues",
+    q: "Concerns about cycle changes, fertility, or bleeding pattern in this life stage? 🤍",
+    reassurance: "Questions about timing and symptoms are valid at any age — we’ve got you.",
+    emoji: "🤍",
+    severityLabels: [
+      "Rarely — mild concern",
+      "Sometimes — noticeable changes worry me",
+      "Often — frequent worry",
+      "Almost always — top of mind / affecting life",
+    ],
+  },
+];
+
+function symptomSetForAge(ageKey) {
+  if (ageKey === "teen") return SYMPTOM_QUESTIONS_TEEN;
+  if (ageKey === "hormonal") return SYMPTOM_QUESTIONS_HORMONAL;
+  return SYMPTOM_QUESTIONS;
+}
+
 const LIFESTYLE_QUESTIONS = {
   teen: [
     { id: "exercise", q: "How often do you move your body — sports, walks, anything? 🏃‍♀️", emoji: "🏃‍♀️" },
@@ -174,8 +379,8 @@ export default function RapidFire({ userData, onGoToZoneReport }) {
   const ageKey   = userData?.ageGroup?.value || userData?.ageGroup || "young";
   const userName = userData?.name || "you";
 
-  // ⭐ CHANGE 2 — Shuffle symptom questions (declared FIRST so totalQs can use it)
-  const [symptomQuestions] = useState(() => shuffleArray(SYMPTOM_QUESTIONS));
+  // ⭐ Symptom questions: same ids for scoring; copy varies for teen vs 35+ hormonal vs adults
+  const [symptomQuestions] = useState(() => shuffleArray(symptomSetForAge(ageKey)));
 
   // ⭐ CHANGE 3 — Shuffle lifestyle questions
   const [lifestyleQs] = useState(() =>

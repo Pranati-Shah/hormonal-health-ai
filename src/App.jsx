@@ -11,6 +11,7 @@ import LearnMore from "./pages/LearnMore";
 import ZoneReport from "./pages/ZoneReport";
 import DoctorConnect from "./pages/DoctorConnect";
 import DoctorDashboard from "./pages/DoctorDashboard";
+import ContactPage from "./pages/Contact";
 
 
 const PETAL_DATA = Array.from({ length: 12 }, (_, i) => ({
@@ -199,31 +200,6 @@ function AboutPage() {
             </div>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-function ContactPage() {
-  return (
-    <section style={{ ...S.page, maxWidth: "500px", margin: "0 auto" }}>
-      <h2 style={S.pageTitle}>Get In <span style={S.pink}>Touch</span></h2>
-      <p style={S.pageSubtext}>We'd love to hear from you.</p>
-      <div style={S.glassCard}>
-        {[
-          { label: "Your Name",     placeholder: "e.g. Priya Sharma", type: "text"  },
-          { label: "Email Address", placeholder: "you@example.com",   type: "email" },
-        ].map((f) => (
-          <div key={f.label} style={{ marginBottom: "16px" }}>
-            <label style={S.label}>{f.label}</label>
-            <input style={S.input} type={f.type} placeholder={f.placeholder} />
-          </div>
-        ))}
-        <div style={{ marginBottom: "20px" }}>
-          <label style={S.label}>Message</label>
-          <textarea style={{ ...S.input, height: "100px", resize: "vertical" }} placeholder="Your message..." />
-        </div>
-        <button style={S.primaryBtn}>Send Message 💌</button>
       </div>
     </section>
   );

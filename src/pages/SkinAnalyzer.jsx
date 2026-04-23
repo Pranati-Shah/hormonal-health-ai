@@ -64,18 +64,30 @@ function UploadPage({ onAnalyze, onBack }) {
   };
 
   const handleAnalyze = async () => {
-    if (!image) { toast.warning("Please upload a skin image first 🌸"); return; }
+    if (!image) {
+      toast.warning("Please upload a skin image first 🌸");
+      return;
+    }
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append("image", image);
       const { data } = await axios.post(
-        "http://localhost:5000/api/skin/analyze", formData,
-        { withCredentials: true, headers: { "Content-Type": "multipart/form-data" } }
+        "http://localhost:5000/api/skin/analyze",
+        formData,
+        { withCredentials: true }
       );
       onAnalyze(data, preview);
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Analysis failed. Please try again.");
+      const serverMessage = err?.response?.data?.message;
+      if (serverMessage?.includes("Unable to verify image safety")) {
+        toast.error(
+          "Unable to verify image safety. Please upload a clearer, unfiltered photo of your skin and try again."
+        );
+      } else {
+        toast.error(serverMessage || "Analysis failed. Please try again.");
+      }
+      console.error("Skin analyzer error:", err?.response || err);
     } finally {
       setLoading(false);
     }
