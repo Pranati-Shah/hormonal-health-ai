@@ -17,7 +17,7 @@ const ZONES = [
   {
     id: 0,
     icon: "🌸",
-    label: "Stabilize & Recover",
+    label: "Build Consistency",
     tagline: "Rest, heal & restore balance",
     color: "#b565a7",
     light: "#d48fd0",
@@ -35,7 +35,7 @@ const ZONES = [
   {
     id: 1,
     icon: "💎",
-    label: "Build Consistency",
+    label: "Support Sensitivity",
     tagline: "Form habits that stick & thrive",
     color: "#4a7fc1",
     light: "#7ab3e8",
@@ -53,7 +53,7 @@ const ZONES = [
   {
     id: 2,
     icon: "🌺",
-    label: "Support Sensitivity",
+    label: "Maintain & Optimize",
     tagline: "Nurture with calm & care",
     color: "#c45e8a",
     light: "#e88ab8",
@@ -71,7 +71,7 @@ const ZONES = [
   {
     id: 3,
     icon: "✨",
-    label: "Maintain & Optimize",
+    label: "Stabilize & Recover",
     tagline: "You're thriving — keep going!",
     color: "#5b9e8a",
     light: "#7dcbb8",
@@ -360,6 +360,7 @@ export default function Dashboard({ onLogout, onGoToZoneReport, currentUser }) {
           setDoctorPatientData({
             name: currentUser?.name || userData?.name || "Current User",
             email: currentUser?.email || "",
+            current: trackerPayload?.current || trackerPayload || null,
             tracker: trackerPayload || null,
           });
           setPage("doctor_connect");
@@ -608,7 +609,7 @@ const D = {
   heroLeft: { flex:1, minWidth:"260px" },
   heroBadge: { display:"inline-block", background:"linear-gradient(135deg, rgba(181,101,167,0.2), rgba(148,108,210,0.2))", color:"#8b3d9b", fontWeight:"700", fontSize:"12px", padding:"6px 16px", borderRadius:"20px", marginBottom:"14px", letterSpacing:"0.5px", border:"1px solid rgba(181,101,167,0.3)", backdropFilter:"blur(8px)" },
   heroTitle: { fontFamily:"'Playfair Display', serif", fontSize:"clamp(24px, 3vw, 36px)", fontWeight:"900", color:"#2d1a4a", margin:"0 0 10px", lineHeight:1.2, textShadow:"0 2px 20px rgba(181,101,167,0.25)" },
-  heroSub: { fontSize:"14px", color:"#5a4070", lineHeight:1.7, margin:"0 0 24px", maxWidth:"380px" },
+  heroSub: { fontSize:"14px", color:"#5a4070", lineHeight:1.5, margin:"6px 0 16px", maxWidth:"460px" },
   heroBtns: { display:"flex", gap:"10px", flexWrap:"wrap" },
   heroRight: { display:"flex", justifyContent:"center" },
   heroSticker: { width:"110px", height:"110px", borderRadius:"50%", objectFit:"cover", border:"3px solid rgba(255,255,255,0.25)", boxShadow:"0 8px 32px rgba(181,101,167,0.4), 0 0 0 6px rgba(181,101,167,0.1)" },

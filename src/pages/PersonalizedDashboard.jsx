@@ -12,28 +12,40 @@ const PHASE_CONFIG = {
 };
 
 const ZONE_CONFIG = {
-  healthy:  { label:"Healthy",       emoji:"🟢", color:"#1a6b4a", lightColor:"#2d9e6f", glowColor:"rgba(29,158,117,0.35)",  grad:"linear-gradient(135deg,#1D9E75,#0F6E56)",  gradSoft:"linear-gradient(135deg,rgba(29,158,117,0.15),rgba(15,110,86,0.08))",  border:"rgba(29,158,117,0.22)"  },
-  mild:     { label:"Mild Risk",     emoji:"🟡", color:"#7a5500", lightColor:"#c07a10", glowColor:"rgba(186,117,23,0.35)",   grad:"linear-gradient(135deg,#BA7517,#EF9F27)",  gradSoft:"linear-gradient(135deg,rgba(186,117,23,0.15),rgba(239,159,39,0.08))",  border:"rgba(186,117,23,0.22)"  },
-  moderate: { label:"Moderate Risk", emoji:"🟠", color:"#8b2a0a", lightColor:"#c45020", glowColor:"rgba(216,90,48,0.35)",   grad:"linear-gradient(135deg,#D85A30,#F0997B)",  gradSoft:"linear-gradient(135deg,rgba(216,90,48,0.15),rgba(240,153,123,0.08))",  border:"rgba(216,90,48,0.22)"  },
-  high:     { label:"High Risk",     emoji:"🔴", color:"#6b1010", lightColor:"#a32d2d", glowColor:"rgba(163,45,45,0.35)",   grad:"linear-gradient(135deg,#A32D2D,#E24B4A)",  gradSoft:"linear-gradient(135deg,rgba(163,45,45,0.15),rgba(226,75,74,0.08))",    border:"rgba(163,45,45,0.22)"  },
+  healthy:  { label:"Stabilize & Recover", emoji:"🟢", color:"#1a6b4a", lightColor:"#2d9e6f", glowColor:"rgba(29,158,117,0.35)",  grad:"linear-gradient(135deg,#1D9E75,#0F6E56)",  gradSoft:"linear-gradient(135deg,rgba(29,158,117,0.15),rgba(15,110,86,0.08))",  border:"rgba(29,158,117,0.22)"  },
+  mild:     { label:"Support Sensitivity", emoji:"🟡", color:"#7a5500", lightColor:"#c07a10", glowColor:"rgba(186,117,23,0.35)",   grad:"linear-gradient(135deg,#BA7517,#EF9F27)",  gradSoft:"linear-gradient(135deg,rgba(186,117,23,0.15),rgba(239,159,39,0.08))",  border:"rgba(186,117,23,0.22)"  },
+  moderate: { label:"Build Consistency",   emoji:"🟠", color:"#8b2a0a", lightColor:"#c45020", glowColor:"rgba(216,90,48,0.35)",   grad:"linear-gradient(135deg,#D85A30,#F0997B)",  gradSoft:"linear-gradient(135deg,rgba(216,90,48,0.15),rgba(240,153,123,0.08))",  border:"rgba(216,90,48,0.22)"  },
+  high:     { label:"Maintain & Optimize", emoji:"🔴", color:"#6b1010", lightColor:"#a32d2d", glowColor:"rgba(163,45,45,0.35)",   grad:"linear-gradient(135deg,#A32D2D,#E24B4A)",  gradSoft:"linear-gradient(135deg,rgba(163,45,45,0.15),rgba(226,75,74,0.08))",    border:"rgba(163,45,45,0.22)"  },
 };
 
 // ── AI helpers ────────────────────────────────────────────────────────────────
 const AI_MODELS = [
-  "google/gemma-3-4b-it:free","google/gemma-3-12b-it:free",
-  "mistralai/mistral-7b-instruct:free","meta-llama/llama-3.1-8b-instruct:free",
-  "meta-llama/llama-3.2-3b-instruct:free","deepseek/deepseek-r1-distill-llama-8b:free",
-  "qwen/qwen3-4b:free","qwen/qwen-2.5-7b-instruct:free",
+  // Keep this short to avoid rate-limit bursts; we fall back between providers/models.
+  "google/gemma-3-4b-it:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "deepseek/deepseek-r1-distill-llama-8b:free",
 ];
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 async function tryAIModel(model, messages) {
+  if (!OPENROUTER_KEY) throw new Error("Missing VITE_OPENROUTER_API_KEY (restart the dev server after adding it).");
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method:"POST",
     headers:{ "Content-Type":"application/json","Authorization":`Bearer ${OPENROUTER_KEY}`,"HTTP-Referer":window.location.origin,"X-Title":"HerSpace Wellness" },
     body: JSON.stringify({ model, messages, max_tokens:700, temperature:0.7 }),
   });
   const data = await res.json();
-  if (data.error) { const e = new Error(data.error.message); e.is429 = data.error.code===429||res.status===429; throw e; }
+  if (data.error) {
+    const suffix = res.status ? ` (HTTP ${res.status})` : "";
+    const hint =
+      res.status === 404
+        ? " If you're using free models, check OpenRouter privacy/provider settings (Free model publication) or try a different model."
+        : "";
+    const e = new Error(`${data.error.message}${suffix}${hint}`);
+    e.is429 = data.error.code===429 || res.status === 429;
+    throw e;
+  }
   return data?.choices?.[0]?.message?.content || "{}";
 }
 
@@ -67,7 +79,13 @@ Generate a unified today's wellness plan. Return ONLY valid JSON (no markdown):
       const text  = await tryAIModel(model, messages);
       const clean = text.replace(/```json|```/g,"").trim();
       return JSON.parse(clean);
-    } catch(e) { lastErr = e; }
+    } catch(e) {
+      lastErr = e;
+      // If we're rate-limited, don't spam additional models immediately.
+      if (e?.is429) break;
+      // Small backoff between models to reduce burstiness.
+      await sleep(450);
+    }
   }
   throw lastErr || new Error("AI unavailable");
 }
@@ -189,10 +207,11 @@ export default function PersonalizedDashboard({ userData, onNavigate, onBack }) 
   const [dashData,      setDashData]      = useState(null);
   const [aiPlan,        setAiPlan]        = useState(null);
   const [aiLoading,     setAiLoading]     = useState(false);
-  const [aiError,       setAiError]       = useState(false);
+  const [aiError,       setAiError]       = useState("");
   const [activeTab,     setActiveTab]     = useState("overview");
   const [wellnessData,  setWellnessData]  = useState(null);
   const [scoreLoading,  setScoreLoading]  = useState(true);
+  const [forceDoctorCta, setForceDoctorCta] = useState(false);
   const aiFetched = useRef(false);
 
   const getGreeting = () => {
@@ -238,9 +257,10 @@ export default function PersonalizedDashboard({ userData, onNavigate, onBack }) 
     const trackerData = dashData.period?.trackerData || {};
     aiFetched.current = true;
     setAiLoading(true);
+    setAiError("");
     fetchPersonalizedPlan({ zone:zoneKey, phase, skinCondition:skinCond, stability, trackerData })
       .then(plan => { setAiPlan(plan); setAiLoading(false); })
-      .catch(() => { setAiError(true); setAiLoading(false); });
+      .catch((e) => { setAiError(e?.message ? String(e.message) : "AI request failed."); setAiLoading(false); });
   }, [dashData]);
 
   if (loading) return (
@@ -271,7 +291,8 @@ export default function PersonalizedDashboard({ userData, onNavigate, onBack }) 
   const miniDue    = zones?.daysUntilMini <= 0;
   const fullDue    = zones?.daysUntilFull <= 0;
   const highRiskCount = zones?.highRiskLoopCount ?? (zones?.tracker?.riskEvents||[]).filter((event)=>event.level==="high").length;
-  const showDoctorCta = highRiskCount >= 2 || zones?.tracker?.doctorRequest?.triggered;
+  const isDoctorEligibleZone = zoneKey === "moderate" || zoneKey === "high";
+  const showDoctorCta = forceDoctorCta || (highRiskCount >= 2 || zones?.tracker?.doctorRequest?.triggered);
   const doctorCareNote =
     zoneKey === "high" || highRiskCount >= 2
       ? "Your recent check-ins suggest your body needs special care right now. Gentle consistency still matters, but this is the right moment to add medical guidance too."
@@ -457,7 +478,6 @@ export default function PersonalizedDashboard({ userData, onNavigate, onBack }) 
               <div>
                 <div style={{fontSize:"11px",fontWeight:"900",color:"#A32D2D",fontFamily:"'Nunito',sans-serif",letterSpacing:"2px",marginBottom:"2px"}}>DOCTOR CONSULTATION RECOMMENDED</div>
                 <div style={{fontSize:"12px",fontWeight:"600",color:"rgba(0,0,0,0.58)",fontFamily:"'DM Sans',sans-serif",lineHeight:1.6,marginBottom:"6px"}}>{doctorCareNote}</div>
-                <div style={{fontSize:"13px",fontWeight:"600",color:"rgba(0,0,0,0.6)",fontFamily:"'DM Sans',sans-serif"}}>High-risk loop detected {highRiskCount} times across your mini/monthly check-ins. Professional guidance is recommended.</div>
               </div>
             </div>
             <div style={{display:"flex",gap:"8px",flexShrink:0}}>
@@ -601,7 +621,8 @@ export default function PersonalizedDashboard({ userData, onNavigate, onBack }) 
             {aiError && (
               <div style={{...gc,marginBottom:"16px",textAlign:"center",padding:"24px"}}>
                 <div style={{fontSize:"24px",marginBottom:"8px"}}>⚠️</div>
-                <p style={{fontSize:"13px",color:"rgba(0,0,0,0.5)",margin:0}}>AI plan unavailable. Check your OpenRouter key.</p>
+                <p style={{fontSize:"13px",color:"rgba(0,0,0,0.5)",margin:0}}>AI plan unavailable.</p>
+                <p style={{fontSize:"12px",color:"rgba(0,0,0,0.42)",margin:"6px 0 0",lineHeight:1.6}}>{aiError}</p>
               </div>
             )}
 

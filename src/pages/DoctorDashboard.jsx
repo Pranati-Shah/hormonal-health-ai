@@ -3,18 +3,27 @@ import React, { useEffect, useMemo, useState } from "react";
 const API = "http://localhost:5000/api";
 const BERRY_BG = "/@fs/C:/Users/BHARAT S SHAH/.cursor/projects/c-Users-BHARAT-S-SHAH-herspace-frontend/assets/c__Users_BHARAT_S_SHAH_AppData_Roaming_Cursor_User_workspaceStorage_b863f0322bfffd5a39f017174614a988_images_WhatsApp_Image_2026-04-16_at_21.03.30-24281b9f-47e2-42be-abad-1bae861e30f1.png";
 
-function buildPatientSummary(patient) {
-  const tracker = patient?.tracker || {};
-  const current = tracker?.current || {};
-  const plan = tracker?.actionPlan || {};
-  const history = tracker?.history || [];
+const ZONE_LABEL_BY_KEY = {
+  mild: "Support Sensitivity",
+  moderate: "Build Consistency",
+  high: "Maintain & Optimize",
+  healthy: "Stabilize & Recover",
+};
+
+function buildPatientSummary(reqItem) {
+  const current = reqItem?.current || reqItem?.tracker?.current || reqItem?.tracker || reqItem?.latestRapidFire || {};
+  const plan = reqItem?.actionPlan || reqItem?.tracker?.actionPlan || {};
+  const symptoms = current?.detectedSymptoms || [];
 
   return {
     zone: current?.zone || "mild",
+    zoneLabel: reqItem?.zoneDisplayName || ZONE_LABEL_BY_KEY[current?.zone] || current?.zone || "—",
     score: current?.finalScore ?? 0,
     maxScore: current?.maxScore ?? 120,
-    symptoms: current?.detectedSymptoms || [],
-    pattern: history.length > 0 ? `${history.length + 1} assessments recorded` : "Single assessment available",
+    symptoms: Array.isArray(symptoms) ? symptoms : [],
+    pattern: Array.isArray(reqItem?.patterns) && reqItem.patterns.length
+      ? `${reqItem.patterns.length} patterns detected`
+      : (current?.createdAt ? "Latest RapidFire available" : "Zone tracker snapshot"),
     actionPlan: {
       diet: plan?.diet || [],
       movement: plan?.movement || [],
@@ -26,48 +35,60 @@ function buildPatientSummary(patient) {
 
 export default function DoctorDashboard({ onBack, fallbackPatient }) {
   const [loading, setLoading] = useState(true);
-  const [patients, setPatients] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [stats, setStats] = useState({ totalUsers: 0, totalRequests: 0 });
+  const [authError, setAuthError] = useState("");
 
   useEffect(() => {
     (async () => {
       try {
-        const [reqRes, statsRes] = await Promise.allSettled([
-          fetch(`${API}/doctor/requests`, { credentials: "include" }),
-          fetch(`${API}/doctor/stats`, { credentials: "include" }),
-        ]);
+        setAuthError("");
+        const fetchJson = async (path) => {
+          const res = await fetch(`${API}${path}`, { credentials: "include" });
+          let data = null;
+          try { data = await res.json(); } catch {}
+          return { res, data };
+        };
 
-        let fetchedPatients = [];
-        if (reqRes.status === "fulfilled" && reqRes.value.ok) {
-          const data = await reqRes.value.json();
-          fetchedPatients = data?.patients || [];
+        // ✅ Normal user flow: cookie-auth only
+        let { res, data } = await fetchJson("/doctor/me");
+
+        // Fallback: older admin endpoint (if /doctor/me not yet deployed)
+        if (res.status === 404) {
+          ({ res, data } = await fetchJson("/doctor/requests"));
+          if (res.ok) {
+            const fetched = Array.isArray(data?.requests) ? data.requests : [];
+            setRequests(fetched);
+            const uniqUsers = new Set(fetched.map((r) => r?.userId).filter(Boolean));
+            setStats({ totalUsers: uniqUsers.size || fetched.length, totalRequests: fetched.length });
+            return;
+          }
         }
 
-        let fetchedStats = { totalUsers: 0, totalRequests: 0 };
-        if (statsRes.status === "fulfilled" && statsRes.value.ok) {
-          const data = await statsRes.value.json();
-          fetchedStats = {
-            totalUsers: data?.totalUsers ?? 0,
-            totalRequests: data?.totalRequests ?? 0,
-          };
+        if (!res.ok) {
+          const msg =
+            res.status === 401
+              ? "You’re not authorized. Please log in again."
+              : `Failed to load doctor data (HTTP ${res.status}).`;
+          setAuthError(msg);
+          if (fallbackPatient) {
+            setRequests([fallbackPatient]);
+            setStats({ totalUsers: 1, totalRequests: 1 });
+          } else {
+            setRequests([]);
+            setStats({ totalUsers: 0, totalRequests: 0 });
+          }
+          return;
         }
 
-        if (!fetchedPatients.length && fallbackPatient) {
-          fetchedPatients = [fallbackPatient];
-        }
-
-        if (!fetchedStats.totalUsers && fetchedPatients.length) {
-          fetchedStats = {
-            totalUsers: fetchedPatients.length,
-            totalRequests: fetchedPatients.length,
-          };
-        }
-
-        setPatients(fetchedPatients);
-        setStats(fetchedStats);
+        // /doctor/me returns a single payload (current user)
+        const me = data || null;
+        const list = me ? [me] : (fallbackPatient ? [fallbackPatient] : []);
+        setRequests(list);
+        setStats({ totalUsers: list.length ? 1 : 0, totalRequests: me?.hasDoctorRequest ? 1 : 0 });
       } catch (err) {
         if (fallbackPatient) {
-          setPatients([fallbackPatient]);
+          setRequests([fallbackPatient]);
           setStats({ totalUsers: 1, totalRequests: 1 });
         }
       } finally {
@@ -76,14 +97,12 @@ export default function DoctorDashboard({ onBack, fallbackPatient }) {
     })();
   }, [fallbackPatient]);
 
-  const patientCards = useMemo(
-    () =>
-      patients.map((patient, idx) => {
-        const summary = buildPatientSummary(patient);
-        return { patient, summary, idx };
-      }),
-    [patients]
-  );
+  const cards = useMemo(() => {
+    return requests.map((reqItem, idx) => {
+      const summary = buildPatientSummary(reqItem);
+      return { reqItem, summary, idx };
+    });
+  }, [requests]);
 
   if (loading) {
     return (
@@ -143,17 +162,28 @@ export default function DoctorDashboard({ onBack, fallbackPatient }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {patientCards.length === 0 && (
+          {authError && (
+            <div style={{ background: "rgba(255,255,255,0.78)", borderRadius: "14px", padding: "16px 18px", color: "#8f2f5f", border: "1px solid rgba(176,77,120,0.22)" }}>
+              <div style={{ fontWeight: 900, marginBottom: "6px" }}>Cannot open doctor dashboard</div>
+              <div style={{ fontSize: "13px", color: "rgba(0,0,0,0.62)", lineHeight: 1.6 }}>{authError}</div>
+            </div>
+          )}
+
+          {cards.length === 0 && !authError && (
             <div style={{ background: "rgba(255,255,255,0.72)", borderRadius: "14px", padding: "18px", color: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.9)" }}>
               No consultation requests yet.
             </div>
           )}
 
-          {patientCards.map(({ patient, summary, idx }) => (
+          {cards.map(({ reqItem, summary, idx }) => (
             <div key={idx} className="doctor-fade" style={{ background: "rgba(255,255,255,0.8)", borderRadius: "18px", padding: "18px", border: "1px solid rgba(255,255,255,0.96)", boxShadow: "0 6px 24px rgba(176,77,120,0.09)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap", marginBottom: "10px" }}>
-                <div style={{ fontSize: "17px", fontWeight: "900", color: "#3e1d35" }}>{patient?.name || patient?.email || `Patient ${idx + 1}`}</div>
-                <div style={{ fontSize: "12px", fontWeight: "800", color: "#8f2f5f", background: "rgba(176,77,120,0.08)", border: "1px solid rgba(176,77,120,0.18)", borderRadius: "16px", padding: "4px 10px" }}>Zone: {summary.zone}</div>
+                <div style={{ fontSize: "17px", fontWeight: "900", color: "#3e1d35" }}>
+                  {reqItem?.name || reqItem?.email || reqItem?.userId || `Patient ${idx + 1}`}
+                </div>
+                <div style={{ fontSize: "12px", fontWeight: "800", color: "#8f2f5f", background: "rgba(176,77,120,0.08)", border: "1px solid rgba(176,77,120,0.18)", borderRadius: "16px", padding: "4px 10px" }}>
+                  Zone: {summary.zoneLabel}
+                </div>
               </div>
               <div style={{ fontSize: "13px", color: "rgba(0,0,0,0.65)", lineHeight: 1.7 }}>
                 <strong>Risk score:</strong> {summary.score}/{summary.maxScore} | <strong>Pattern detected:</strong> {summary.pattern}

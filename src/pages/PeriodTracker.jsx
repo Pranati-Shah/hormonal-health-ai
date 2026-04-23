@@ -462,7 +462,6 @@ const AI_MODELS = [
   "deepseek/deepseek-chat-v3-0324:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
   "qwen/qwen-2.5-72b-instruct:free",
-  "qwen/qwen-2.5-7b-instruct:free",
   "google/gemma-3-4b-it:free",
   "google/gemma-2-9b-it:free",
   "meta-llama/llama-3.2-3b-instruct:free",
@@ -481,10 +480,16 @@ async function tryAIModel(model, messages, key) {
     },
     body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 500 }),
   });
-  const data = await res.json();
-  if (data.error) {
-    const err = new Error(data.error.message || "Model error");
-    err.is429 = data.error.code === 429 || res.status === 429;
+  let data;
+  try { data = await res.json(); } catch { data = null; }
+  if (!res.ok || data?.error) {
+    const msg = data?.error?.message || `Model error (HTTP ${res.status || "?"})`;
+    const hint =
+      res.status === 404
+        ? " If you're using free models, check OpenRouter privacy/provider settings (Free model publication) or try a different model."
+        : "";
+    const err = new Error(`${msg}${hint}`);
+    err.is429 = data?.error?.code === 429 || res.status === 429;
     throw err;
   }
   return data?.choices?.[0]?.message?.content || "[]";

@@ -10,10 +10,10 @@ import {
 const API = "http://localhost:5000/api";
 
 const ZONE_LABELS = {
-  healthy: "Healthy",
-  mild: "Mild Risk",
-  moderate: "Moderate Risk",
-  high: "High Risk",
+  healthy: "Stabilize & Recover",
+  mild: "Support Sensitivity",
+  moderate: "Build Consistency",
+  high: "Maintain & Optimize",
 };
 
 const ZONE_EMOJI = {
@@ -34,6 +34,13 @@ function formatShortDate(iso) {
   } catch {
     return null;
   }
+}
+
+function normalizeTrackerHistory(tracker) {
+  if (!tracker) return [];
+  if (Array.isArray(tracker.history)) return [...tracker.history];
+  if (tracker.history && typeof tracker.history === "object") return Object.values(tracker.history);
+  return [];
 }
 
 function FlipCard({ front, back }) {
@@ -274,8 +281,12 @@ function Petals() {
 }
 
 function buildRiskSeries(tracker) {
-  const h = tracker?.history || [];
-  const chronological = [...h].reverse();
+  const h = normalizeTrackerHistory(tracker);
+  const chronological = [...h].sort((a, b) => {
+    const aDate = new Date(a.createdAt || a.date || a.timestamp || a.at);
+    const bDate = new Date(b.createdAt || b.date || b.timestamp || b.at);
+    return aDate - bDate;
+  });
   const labels = [];
   const scores = [];
   chronological.forEach((snap, i) => {
@@ -291,8 +302,12 @@ function buildRiskSeries(tracker) {
 }
 
 function buildZoneSeries(tracker) {
-  const h = tracker?.history || [];
-  const chronological = [...h].reverse();
+  const h = normalizeTrackerHistory(tracker);
+  const chronological = [...h].sort((a, b) => {
+    const aDate = new Date(a.createdAt || a.date || a.timestamp);
+    const bDate = new Date(b.createdAt || b.date || b.timestamp);
+    return aDate - bDate;
+  });
   const labels = [];
   const zoneIndices = [];
   chronological.forEach((snap, i) => {
@@ -312,22 +327,24 @@ function buildHistoryTimeline({ profile, zonesPayload, periodPayload, skinPayloa
   const rows = [];
   const tracker = zonesPayload?.tracker;
   const zoneKey = tracker?.current?.zone;
+  const profileSaved = !!profile?.name && !!profile?.ageGroup;
+  const zoneSaved = !!zoneKey;
+  const hist = normalizeTrackerHistory(tracker);
 
-  if (completeness?.aboutDone && profile) {
+  if (profileSaved) {
     rows.push({
       date: formatShortDate(profile.updatedAt) || "—",
       event: "About You profile saved",
       icon: "📋",
     });
   }
-  if (completeness?.zonesDone && zoneKey) {
+  if (zoneSaved) {
     rows.push({
-      date: formatShortDate(tracker?.current?.updatedAt) || "—",
+      date: formatShortDate(tracker?.current?.updatedAt) || "Latest",
       event: `PCOD zone: ${ZONE_LABELS[zoneKey] || zoneKey} (score ${tracker?.current?.finalScore ?? "—"})`,
       icon: ZONE_EMOJI[zoneKey] || "🌸",
     });
   }
-  const hist = tracker?.history || [];
   hist.forEach((snap, i) => {
     const d = snap.createdAt || snap.date || snap.timestamp;
     rows.push({
@@ -404,16 +421,16 @@ export default function ViewProfile({ onBack, userData }) {
   const ageRange = typeof ageGroup === "object" && ageGroup?.range != null ? ageGroup.range : "";
 
   const tracker = zonesPayload?.tracker;
-  const zoneKey = tracker?.current?.zone || "mild";
-  const zoneLabel = ZONE_LABELS[zoneKey] || zoneKey;
+  const zoneKey = tracker?.current?.zone || null;
+  const zoneLabel = zoneKey ? ZONE_LABELS[zoneKey] || zoneKey : "Not available";
 
   const completeness = useMemo(() => {
-    const aboutDone = aboutPayload?.hasProfile === true;
-    const zonesDone = zonesPayload?.hasZones === true && !!tracker?.current?.zone;
+    const aboutDone = aboutPayload?.hasProfile === true || (!!profile?.name && !!profile?.ageGroup);
+    const zonesDone = !!tracker?.current?.zone;
     const periodDone = periodPayload?.hasTracker === true;
     const skinDone = (skinPayload?.entries?.length || 0) > 0;
     return { aboutDone, zonesDone, periodDone, skinDone };
-  }, [aboutPayload, zonesPayload, periodPayload, skinPayload, tracker]);
+  }, [aboutPayload, zonesPayload, periodPayload, skinPayload, tracker, profile]);
 
   const assessments = useMemo(() => {
     return [

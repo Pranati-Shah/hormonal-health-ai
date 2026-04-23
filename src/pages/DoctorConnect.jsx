@@ -30,7 +30,7 @@ export default function DoctorConnect({ onBack, onOpenDoctorDashboard }) {
             Connect with Doctor 👩‍⚕️
           </h1>
           <p style={{ margin: "0 0 18px", color: "rgba(0,0,0,0.6)", lineHeight: 1.7 }}>
-            Trigger condition is high-risk detected <strong>2 or more times</strong>. AI prepares a concise summary for consultation support.
+            Share your zone summary and key patterns with a doctor to get personalized guidance.
           </p>
 
           <div style={{ background: "linear-gradient(135deg,rgba(181,101,167,0.12),rgba(124,92,191,0.1))", border: "1px solid rgba(124,92,191,0.18)", borderRadius: "16px", padding: "16px 18px", marginBottom: "16px" }}>
@@ -52,7 +52,15 @@ export default function DoctorConnect({ onBack, onOpenDoctorDashboard }) {
             </ul>
           </div>
 
-          <button onClick={onOpenDoctorDashboard} style={{ border: "none", borderRadius: "14px", padding: "12px 18px", fontWeight: "800", cursor: "pointer", background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff" }}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (typeof onOpenDoctorDashboard === "function") onOpenDoctorDashboard();
+            }}
+            style={{ border: "none", borderRadius: "14px", padding: "12px 18px", fontWeight: "800", cursor: "pointer", background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff" }}
+          >
             Open Doctor Dashboard →
           </button>
         </div>

@@ -322,6 +322,7 @@ export default function App() {
           setDoctorPatientData({
             name: currentUser?.name || "Current User",
             email: currentUser?.email || "",
+            current: trackerPayload?.current || trackerPayload || null,
             tracker: trackerPayload || null,
           });
           setActive("doctor_connect");

@@ -14,7 +14,6 @@ const AI_MODELS = [
   "meta-llama/llama-3.2-3b-instruct:free",
   "deepseek/deepseek-r1-distill-llama-8b:free",
   "qwen/qwen3-4b:free",
-  "qwen/qwen-2.5-7b-instruct:free",
 ];
 
 async function tryAIModel(model, messages) {
@@ -29,10 +28,16 @@ async function tryAIModel(model, messages) {
     body: JSON.stringify({ model, messages, max_tokens: 900, temperature: 0.7 }),
   });
 
-  const data = await res.json();
-  if (data.error) {
-    const err = new Error(data.error.message || "AI request failed");
-    err.is429 = data.error.code === 429 || res.status === 429;
+  let data;
+  try { data = await res.json(); } catch { data = null; }
+  if (!res.ok || data?.error) {
+    const msg = data?.error?.message || `AI request failed (HTTP ${res.status || "?"})`;
+    const hint =
+      res.status === 404
+        ? " If you're using free models, check OpenRouter privacy/provider settings (Free model publication) or try a different model."
+        : "";
+    const err = new Error(`${msg}${hint}`);
+    err.is429 = data?.error?.code === 429 || res.status === 429;
     throw err;
   }
 
@@ -139,7 +144,7 @@ function buildCareFallback(zoneKey, count) {
 
 const ZONE_CONFIG = {
   mild: {
-    label:"Build Consistency", emoji:"💎", color:"#4a7fc1", lightColor:"#7ab3e8",
+    label:"Support Sensitivity", emoji:"💎", color:"#4a7fc1", lightColor:"#7ab3e8",
     glowColor:"rgba(74,127,193,0.4)", border:"rgba(74,127,193,0.22)",
     grad:"linear-gradient(135deg,#4a7fc1,#7ab3e8)",
     gradSoft:"linear-gradient(135deg,rgba(74,127,193,0.15),rgba(122,179,232,0.08))",
@@ -148,10 +153,10 @@ const ZONE_CONFIG = {
     subtitle:"Form habits that stick & thrive.\nYou're on the right track — build consistent habits around exercise, nutrition, and sleep.",
     explanation:"You're on the right track! Build consistent habits around exercise, nutrition, and sleep to strengthen your hormonal health. Your current patterns show good foundation but could benefit from more structure and consistency.",
     subtext:"Build consistent habits around exercise, nutrition, and sleep.",
-    badge:"Build Consistency", badgeColor:"rgba(74,127,193,0.12)",
+    badge:"Support Sensitivity", badgeColor:"rgba(74,127,193,0.12)",
   },
   moderate: {
-    label:"Stabilize & Recover", emoji:"🌸", color:"#b565a7", lightColor:"#d48fd0",
+    label:"Build Consistency", emoji:"🌸", color:"#b565a7", lightColor:"#d48fd0",
     glowColor:"rgba(181,101,167,0.4)", border:"rgba(181,101,167,0.22)",
     grad:"linear-gradient(135deg,#b565a7,#d48fd0)",
     gradSoft:"linear-gradient(135deg,rgba(181,101,167,0.15),rgba(212,143,208,0.08))",
@@ -160,10 +165,10 @@ const ZONE_CONFIG = {
     subtitle:"Rest, heal & restore balance.\nYour body is asking for gentle care — prioritize deep rest, healing foods, and stress relief.",
     explanation:"Your body is asking for gentle care. Prioritize deep rest, healing foods, and stress relief to restore hormonal balance. Your current patterns suggest you need more recovery and stabilization.",
     subtext:"Prioritize deep rest, healing foods, and stress relief.",
-    badge:"Stabilize & Recover", badgeColor:"rgba(181,101,167,0.12)",
+    badge:"Build Consistency", badgeColor:"rgba(181,101,167,0.12)",
   },
   high: {
-    label:"Support Sensitivity", emoji:"🌺", color:"#c45e8a", lightColor:"#e88ab8",
+    label:"Maintain & Optimize", emoji:"🌺", color:"#c45e8a", lightColor:"#e88ab8",
     glowColor:"rgba(196,94,138,0.4)", border:"rgba(196,94,138,0.22)",
     grad:"linear-gradient(135deg,#c45e8a,#e88ab8)",
     gradSoft:"linear-gradient(135deg,rgba(196,94,138,0.15),rgba(232,138,184,0.08))",
@@ -172,10 +177,10 @@ const ZONE_CONFIG = {
     subtitle:"Nurture with calm & care.\nYour system is sensitive right now — embrace calming routines, nourishing food, and mindful stress management.",
     explanation:"Your system is sensitive right now. Embrace calming routines, nourishing food, and mindful stress management. Your patterns indicate you need extra support and sensitivity in your approach.",
     subtext:"Embrace calming routines, nourishing food, and mindful stress management.",
-    badge:"Support Sensitivity", badgeColor:"rgba(196,94,138,0.12)",
+    badge:"Maintain & Optimize", badgeColor:"rgba(196,94,138,0.12)",
   },
   healthy: {
-    label:"Maintain & Optimize", emoji:"✨", color:"#5b9e8a", lightColor:"#7dcbb8",
+    label:"Stabilize & Recover", emoji:"✨", color:"#5b9e8a", lightColor:"#7dcbb8",
     glowColor:"rgba(91,158,138,0.4)", border:"rgba(91,158,138,0.22)",
     grad:"linear-gradient(135deg,#5b9e8a,#7dcbb8)",
     gradSoft:"linear-gradient(135deg,rgba(91,158,138,0.15),rgba(125,203,184,0.08))",
@@ -184,7 +189,7 @@ const ZONE_CONFIG = {
     subtitle:"You're thriving — keep going!\nMaintain your excellent habits and optimize further with advanced wellness practices and cycle syncing.",
     explanation:"You're thriving! Maintain your excellent habits and optimize further with advanced wellness practices and cycle syncing. Your patterns show excellent hormonal health that you want to preserve.",
     subtext:"Maintain your excellent habits and optimize further.",
-    badge:"Maintain & Optimize", badgeColor:"rgba(91,158,138,0.12)",
+    badge:"Stabilize & Recover", badgeColor:"rgba(91,158,138,0.12)",
   },
 };
 
@@ -244,10 +249,10 @@ function RiskMeter({ score, maxScore, color, glowColor }) {
         <circle cx={cx} cy={cy} r="8" fill="rgba(255,255,255,0.9)" style={{filter:`drop-shadow(0 0 6px ${glowColor})`}}/>
         <circle cx={cx} cy={cy} r="3.5" fill={color}/>
         <text x={cx} y={cy-20} textAnchor="middle" fontSize="13" fontWeight="900" fill={color} fontFamily="'Nunito',sans-serif">{score}/{maxScore}</text>
-        <text x="16"  y="118" textAnchor="middle" fontSize="8" fontWeight="800" fill="#1D9E75">Healthy</text>
-        <text x="65"  y="118" textAnchor="middle" fontSize="8" fontWeight="800" fill="#BA7517">Mild</text>
-        <text x="152" y="118" textAnchor="middle" fontSize="8" fontWeight="800" fill="#D85A30">Moderate</text>
-        <text x="204" y="118" textAnchor="middle" fontSize="8" fontWeight="800" fill="#A32D2D">High</text>
+        <text x="16"  y="118" textAnchor="middle" fontSize="7" fontWeight="800" fill="#1D9E75">Stabilize</text>
+        <text x="65"  y="118" textAnchor="middle" fontSize="7" fontWeight="800" fill="#BA7517">Support</text>
+        <text x="152" y="118" textAnchor="middle" fontSize="7" fontWeight="800" fill="#D85A30">Build</text>
+        <text x="204" y="118" textAnchor="middle" fontSize="7" fontWeight="800" fill="#A32D2D">Maintain</text>
       </svg>
     </div>
   );
@@ -384,7 +389,8 @@ function ZoneDashboard({ tracker, zc, daysData, onMiniCheckin, onFullCheckin, on
   const stabilityEmoji = stability==="Improving"?"📈":stability==="Worsening"?"📉":"➡️";
   const trackerRiskCount = (localTracker?.riskEvents || []).filter((event) => event.level === "high").length;
   const highRiskCount = Math.max(riskLoopCount, trackerRiskCount);
-  const showDoctor = forceDoctorCta || highRiskCount >= 2 || doctorRequest?.triggered;
+  const isDoctorEligibleZone = currZone === "moderate" || currZone === "high";
+  const showDoctor = forceDoctorCta ||  (isDoctorEligibleZone && (highRiskCount >= 2 || doctorRequest?.triggered));
   const effectivePlan = aiPlan || actionPlan;
   const totalAssessments = (localTracker?.history?.length || 0) + (current?.zone ? 1 : 0);
 
@@ -695,14 +701,11 @@ Return ONLY valid JSON:
             </div>
           </div>
           <button
-            onClick={() => {
-              setForceDoctorCta(true);
-              try { window.localStorage.setItem("doctorCtaTestMode", "1"); } catch {}
-            }}
+            onClick={() => onGoToDoctorConnect && onGoToDoctorConnect(localTracker)}
             className="primary-btn"
             style={{padding:"10px 18px",border:"none",borderRadius:"12px",background:"linear-gradient(135deg,#c45e8a,#e88ab8)",color:"#fff",fontWeight:"800",fontSize:"12px",cursor:"pointer",fontFamily:"'Nunito',sans-serif"}}
           >
-            Enable Doctor CTA Test
+            Doctor Test
           </button>
         </div>
       )}
@@ -721,15 +724,16 @@ Return ONLY valid JSON:
                   {careLoading ? "Writing a gentle care note for you..." : careAdvice || buildCareFallback(currZone, highRiskCount)}
                 </div>
               </div>
-              <div style={{fontSize:"13px",fontWeight:"600",color:"rgba(0,0,0,0.6)",fontFamily:"'DM Sans',sans-serif",lineHeight:1.5}}>
-                {doctorRequest?.triggered ? doctorRequest.doctorResponse || "Our wellness team will review your symptoms and respond within 24 hours." : `High-risk loop detected ${highRiskCount} times across your mini/monthly check-ins. A professional consultation is recommended now.`}
-              </div>
+              {doctorRequest?.triggered && (
+                <div style={{fontSize:"13px",fontWeight:"600",color:"rgba(0,0,0,0.6)",fontFamily:"'DM Sans',sans-serif",lineHeight:1.5}}>
+                  {doctorRequest.doctorResponse || "Our wellness team will review your symptoms and respond within 24 hours."}
+                </div>
+              )}
             </div>
           </div>
           {!doctorRequest?.triggered&&(
             <div style={{display:"flex",gap:"8px",flexShrink:0,position:"relative"}}>
               <button onClick={() => onGoToDoctorConnect && onGoToDoctorConnect(localTracker)} style={{padding:"10px 18px",border:"none",borderRadius:"12px",color:"#fff",fontWeight:"800",fontSize:"12px",cursor:"pointer",fontFamily:"'Nunito',sans-serif",background:"linear-gradient(135deg,#25D366,#128C7E)",whiteSpace:"nowrap"}}>👩‍⚕️ Connect with Doctor</button>
-              <button onClick={()=>window.open("https://www.practo.com/","_blank")} style={{padding:"10px 18px",border:"none",borderRadius:"12px",color:"#fff",fontWeight:"800",fontSize:"12px",cursor:"pointer",fontFamily:"'Nunito',sans-serif",background:"linear-gradient(135deg,#A32D2D,#E24B4A)",whiteSpace:"nowrap"}}>📅 Book</button>
               {forceDoctorCta && (
                 <button
                   onClick={() => {
@@ -836,11 +840,6 @@ Return ONLY valid JSON:
           </div>
         ))}
       </div>
-      <div style={{marginTop:"18px",display:"flex",gap:"8px"}}>
-        <button style={{padding:"10px 18px",border:"none",borderRadius:"12px",background:zc.grad,color:"#fff",fontWeight:"800",fontSize:"12px",cursor:"pointer",fontFamily:"'Nunito',sans-serif",transition:"all 0.2s ease"}}>
-          View full Report 📋
-        </button>
-      </div>
     </div>
   );
 }
@@ -917,6 +916,8 @@ export default function ZoneReport({ result, onGoToDashboard, onGoToDoctorConnec
   const maxScore      = viewResult.maxScore ?? 120;
   const confidencePct = viewResult.confidencePct ?? 0;
   const persistentRisk = viewResult.persistentRisk || false;
+  const showPersistentRiskDoctorCta =
+    persistentRisk && (activeZone === "moderate" || activeZone === "high");
   const lifestyleAnswers = viewResult.result?.lifestyleAnswers || viewResult.lifestyleAnswers || [];
 
   // ✅ Sync called ONCE, guarded by syncedRef
@@ -1082,8 +1083,8 @@ export default function ZoneReport({ result, onGoToDashboard, onGoToDoctorConnec
               <div className="fade-up delay-3" style={{...gc,background:zc.gradSoft,border:`1.5px solid ${zc.border}`,textAlign:"center",padding:"32px"}}>
                 <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:"200px",height:"80px",background:zc.glowColor,filter:"blur(40px)",borderRadius:"50%",opacity:0.3,pointerEvents:"none"}}/>
                 <div style={{fontSize:"36px",marginBottom:"12px"}}>📋</div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",fontWeight:"900",color:"#1a1a2e",margin:"0 0 8px"}}>Ready for your full report?</h3>
-                <p style={{fontSize:"14px",color:"rgba(0,0,0,0.45)",marginBottom:"20px",lineHeight:1.6}}>Get AI-personalised wellness advice, lifestyle insights, and detailed recommendations.</p>
+                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",fontWeight:"900",color:"#1a1a2e",margin:"0 0 8px"}}>Your complete wellness report is ready</h3>
+                <p style={{fontSize:"14px",color:"rgba(0,0,0,0.45)",marginBottom:"20px",lineHeight:1.6}}>See clear insights, practical next steps, and a personalized plan tailored to your current zone.</p>
                 <button onClick={()=>setPart(2)} className="primary-btn" style={{padding:"14px 36px",border:"none",borderRadius:"22px",background:zc.grad,color:"#fff",fontWeight:"800",fontSize:"15px",cursor:"pointer",fontFamily:"'Nunito',sans-serif",boxShadow:`0 8px 28px ${zc.glowColor}`}}>View Full Report → ✨</button>
               </div>
             </div>
@@ -1139,7 +1140,7 @@ export default function ZoneReport({ result, onGoToDashboard, onGoToDoctorConnec
                 </div>
               )}
 
-              {persistentRisk&&(
+              {showPersistentRiskDoctorCta&&(
                 <div className="fade-up delay-3" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"20px",background:"linear-gradient(135deg,rgba(255,225,225,0.85),rgba(255,240,235,0.78))",backdropFilter:"blur(20px)",borderRadius:"18px",padding:"18px 24px",border:`1.5px solid ${zc.border}`,marginBottom:"16px",position:"relative",overflow:"hidden"}}>
                   <div style={{position:"absolute",top:"-20px",right:"-20px",width:"100px",height:"100px",background:zc.glowColor,filter:"blur(30px)",borderRadius:"50%",opacity:0.35,pointerEvents:"none"}}/>
                   <div style={{display:"flex",alignItems:"center",gap:"14px",flex:1,minWidth:0}}>
