@@ -618,14 +618,8 @@ export default function PersonalizedDashboard({ userData, onNavigate, onBack }) 
               </div>
             )}
 
-            {aiError && (
-              <div style={{...gc,marginBottom:"16px",textAlign:"center",padding:"24px"}}>
-                <div style={{fontSize:"24px",marginBottom:"8px"}}>⚠️</div>
-                <p style={{fontSize:"13px",color:"rgba(0,0,0,0.5)",margin:0}}>AI plan unavailable.</p>
-                <p style={{fontSize:"12px",color:"rgba(0,0,0,0.42)",margin:"6px 0 0",lineHeight:1.6}}>{aiError}</p>
-              </div>
-            )}
-
+            {aiError && null}
+            
             {!aiLoading && !aiError && aiPlan && (
               <>
                 {aiPlan.insight && (
